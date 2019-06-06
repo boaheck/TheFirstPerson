@@ -33,8 +33,9 @@ public class FPSController : MonoBehaviour{
 
     [Header("Gravity Settings")]
     public float gravity;
-    public float gravityAcceleration;
 	public float groundforce; 
+    public float gravityCap;
+    public float baseFallVelocity;
 
     [Header("Speed Settings")]
     public float moveSpeed;
@@ -95,7 +96,9 @@ public class FPSController : MonoBehaviour{
     //Vertical Movement
     bool jumping;
     bool grounded;
+    float timeSinceGrounded;
     float yVel;
+    float gravMult = 1;
     
 
     //General movement
@@ -152,6 +155,10 @@ public class FPSController : MonoBehaviour{
         forward = transform.forward;
         side = transform.right;
         currentMove = Vector3.zero;
+        grounded = controller.isGrounded;
+
+        //horizontal movement
+
         if(moving){
             currentMove += forward * moveSpeed * yIn;
             if(yIn < 0){
@@ -159,6 +166,44 @@ public class FPSController : MonoBehaviour{
             }
             currentMove += side * moveSpeed * xIn * strafeMult;
         }
+
+        //vertical movement
+        
+        if(grounded){
+            yVel = -groundforce;
+            timeSinceGrounded = 0;
+            jumping = false;
+            if(jumpEnabled){
+                if(jumpPressed > 0){
+                    jumping = true;
+                    yVel = jumpSpeed;
+                    jumpPressed = 0;
+                }
+            }
+        }else{
+            if(timeSinceGrounded <= 0 && !jumping){
+                yVel = -baseFallVelocity;
+            }
+            if(jumpEnabled && timeSinceGrounded < coyoteTime){
+                if(jumpPressed > 0 && !jumping){
+                    jumping = true;
+                    yVel = jumpSpeed;
+                    jumpPressed = 0;
+                }
+            }
+
+            yVel -= gravity * gravMult * Time.deltaTime;
+            if(yVel < -gravityCap){
+                yVel = -gravityCap;
+            }
+
+            timeSinceGrounded += Time.deltaTime;
+            if(jumpPressed > 0){
+                jumpPressed -= Time.deltaTime;
+            }
+        }
+
+        currentMove += Vector3.up * yVel;
 
         controller.Move(currentMove * Time.deltaTime);
     }

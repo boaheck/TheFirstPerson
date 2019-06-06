@@ -783,18 +783,19 @@ MonoBehaviour:
   sprintEnabled: 0
   momentumEnabled: 0
   crouchEnabled: 0
-  jumpEnabled: 0
+  jumpEnabled: 1
   verticalLookEnabled: 1
   customInputNames: 0
-  jumpSpeed: 0
+  jumpSpeed: 10
   variableHeight: 0
-  coyoteTime: 0
-  bunnyhopTolerance: 0
+  coyoteTime: 0.1
+  bunnyhopTolerance: 0.1
   jumpGravity: 0
   postJumpGravity: 0
-  gravity: 0
-  gravityAcceleration: 0
-  groundforce: 0
+  gravity: 9
+  groundforce: 2
+  gravityCap: 30
+  baseFallVelocity: 0.5
   moveSpeed: 10
   slopeSlideSpeed: 0
   acceleration: 0
