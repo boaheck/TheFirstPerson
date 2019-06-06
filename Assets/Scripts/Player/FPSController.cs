@@ -15,6 +15,7 @@ public class FPSController : MonoBehaviour{
     public bool crouchEnabled;
     public bool jumpEnabled;
     public bool verticalLookEnabled;
+    public bool customInputNames;
     
     [Header("Jump Settings")]
     [ConditionalHide("jumpEnabled",true)]
@@ -50,7 +51,7 @@ public class FPSController : MonoBehaviour{
 
     [Header("Mouse Look Settings")]
     public float sensitivity;
-    [ConditionalHide("verticalLook",true)]
+    [ConditionalHide("verticalLookEnabled",true)]
     public float verticalLookLimit;
 
     [Header("CrouchSettings")]
@@ -61,11 +62,30 @@ public class FPSController : MonoBehaviour{
     [ConditionalHide("crouchEnabled",true)]
     public float crouchMult;
 
+    [Header("Input Names")]
+    [ConditionalHide("customInputNames",true)]
+    public string jumpBtnCustom = "Jump";
+    [ConditionalHide("customInputNames",true)]
+    public string crouchBtnCustom = "Fire1";
+    [ConditionalHide("customInputNames",true)]
+    public string runBtnCustom = "Fire3";
+    [ConditionalHide("customInputNames",true)]
+    string unlockMouseBtnCustom = "Cancel";
+    [ConditionalHide("customInputNames",true)]
+    public string xInNameCustom = "Horizontal";
+    [ConditionalHide("customInputNames",true)]
+    public string yInNameCustom = "Vertical";
+    [ConditionalHide("customInputNames",true)]
+    public string xMouseNameCustom = "Mouse X";
+    [ConditionalHide("customInputNames",true)]
+    public string yMouseNameCustom = "Mouse Y";
+
     //Input
     bool moving;
     bool jumpHeld;
     bool crouching;
     bool running;
+    bool mouseLocked = true;
     float jumpPressed;
     float xIn;
     float yIn;
@@ -82,21 +102,119 @@ public class FPSController : MonoBehaviour{
 	Vector3 currentMove;
 	Vector3 forward;
 	Vector3 side;
-	Vector3 facing;
 
     //sliding
     bool slide;
 	Vector3 hitNormal;
+
+    //crouching
+    float standingHeight;
+    float standingCameraHeight;
+
+    //Input Name Defaults (assuming default unity axes are set up)
+    string jumpBtn = "Jump";
+    string crouchBtn = "Fire1";
+    string runBtn = "Fire3";
+    string unlockMouseBtn = "Cancel";
+    string xInName = "Horizontal";
+    string yInName = "Vertical";
+    string xMouseName = "Mouse X";
+    string yMouseName = "Mouse Y";
 
     void Start(){
         controller = GetComponent<CharacterController>();
 
         //get the transform of a child with a camera component
         cam = transform.GetComponentInChildren<Camera>().transform;
+
+        if(customInputNames){
+            jumpBtn = jumpBtnCustom;
+            crouchBtn = crouchBtnCustom;
+            runBtn = runBtnCustom;
+            unlockMouseBtn = unlockMouseBtnCustom;
+            xInName = xInNameCustom;
+            yInName = yInNameCustom;
+            xMouseName = xMouseNameCustom;
+            yMouseName = yMouseNameCustom;
+        }
     }
 
     void Update(){
-        
+        UpdateInput();
+        UpdateMouseLock();
+        if(mouseLocked){
+            MouseLook();
+        }
+        UpdateMovement();
+    }
+
+    void UpdateMovement(){
+        forward = transform.forward;
+        side = transform.right;
+        currentMove = Vector3.zero;
+        if(moving){
+            currentMove += forward * moveSpeed * yIn;
+            if(yIn < 0){
+                currentMove *= backwardMult;
+            }
+            currentMove += side * moveSpeed * xIn * strafeMult;
+        }
+
+        controller.Move(currentMove * Time.deltaTime);
+    }
+
+    void UpdateMouseLock(){
+        if(Input.GetButtonDown(unlockMouseBtn)){
+            mouseLocked = false;
+        }else if(Input.GetMouseButtonDown(0)){
+            mouseLocked = true;
+        }
+
+        if(mouseLocked){
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }else{
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+    }
+
+    void MouseLook(){
+        float horizontalLook = transform.eulerAngles.y;
+        float verticalLook = cam.localEulerAngles.x;
+
+        horizontalLook += xMouse * sensitivity * Time.deltaTime;
+
+        if(verticalLookEnabled){
+            verticalLook -= yMouse * sensitivity * Time.deltaTime;
+            
+            //clamp vertical look to vertical look limit.
+            if(verticalLook > verticalLookLimit && verticalLook < 180){
+                verticalLook = verticalLookLimit;
+            }else if(verticalLook > 180 && verticalLook < 360 - verticalLookLimit){
+                verticalLook = 360 - verticalLookLimit;
+            }
+
+            cam.localEulerAngles = new Vector3(verticalLook,0,0);
+        }
+
+        transform.localEulerAngles = new Vector3(0,horizontalLook,0);
+
+    }
+
+    void UpdateInput(){
+        xIn = Input.GetAxisRaw(xInName);
+        yIn = Input.GetAxisRaw(yInName);
+        xMouse = Input.GetAxis(xMouseName);
+        yMouse = Input.GetAxis(yMouseName);
+        moving = Mathf.Abs(xIn) > 0.1 || Mathf.Abs(yIn) > 0.1;
+        jumpHeld = Input.GetButton(jumpBtn);
+        crouching = Input.GetButton(crouchBtn);
+        running = Input.GetButton(runBtn);
+        if(Input.GetButtonDown(jumpBtn)){
+            jumpPressed = coyoteTime;
+        }
     }
 
 }
