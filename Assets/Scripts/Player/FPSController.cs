@@ -16,6 +16,9 @@ public class FPSController : MonoBehaviour{
     public bool jumpEnabled;
     public bool verticalLookEnabled;
     public bool customInputNames;
+    [Range(0f,1f)]
+    public float airControl = 0.5f;
+    public bool airSprintEnabled;
     
     [Header("Jump Settings")]
     [ConditionalHide("jumpEnabled",true)]
@@ -36,6 +39,14 @@ public class FPSController : MonoBehaviour{
 	public float groundforce; 
     public float gravityCap;
     public float baseFallVelocity;
+
+    [Header("Air Control Settings")]
+    public float airResistance;
+    public float airMoveSpeed;
+    public float airStrafeMult;
+    public float airBackwardsMult;
+    [ConditionalHide("airSprintEnabled",true)]
+    public float airSprintMult;
 
     [Header("Speed Settings")]
     public float moveSpeed;
@@ -102,6 +113,7 @@ public class FPSController : MonoBehaviour{
     
 
     //General movement
+    Vector3 lastMove;
 	Vector3 currentMove;
 	Vector3 forward;
 	Vector3 side;
@@ -154,22 +166,18 @@ public class FPSController : MonoBehaviour{
     void UpdateMovement(){
         forward = transform.forward;
         side = transform.right;
+        lastMove = currentMove;
         currentMove = Vector3.zero;
         grounded = controller.isGrounded;
-
-        //horizontal movement
-
-        if(moving){
-            currentMove += forward * moveSpeed * yIn;
-            if(yIn < 0){
-                currentMove *= backwardMult;
-            }
-            currentMove += side * moveSpeed * xIn * strafeMult;
-        }
-
-        //vertical movement
         
         if(grounded){
+            if(moving){
+                currentMove += forward * moveSpeed * yIn;
+                if(yIn < 0){
+                    currentMove *= backwardMult;
+                }
+                currentMove += side * moveSpeed * xIn * strafeMult;
+            }
             yVel = -groundforce;
             timeSinceGrounded = 0;
             jumping = false;
@@ -181,6 +189,17 @@ public class FPSController : MonoBehaviour{
                 }
             }
         }else{
+            Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
+            if(moving){
+                Vector3 targetMove = forward * airMoveSpeed * yIn;
+                if(yIn < 0){
+                    targetMove *= airBackwardsMult;
+                }
+                targetMove += side * airMoveSpeed * xIn * airStrafeMult;
+                currentMove = Vector3.Lerp(lastMoveH,targetMove,airControl);
+            }else{
+                currentMove = Vector3.MoveTowards(lastMoveH,Vector3.zero,airResistance*Time.deltaTime);
+            }
             if(timeSinceGrounded <= 0 && !jumping){
                 yVel = -baseFallVelocity;
             }

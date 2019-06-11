@@ -786,6 +786,8 @@ MonoBehaviour:
   jumpEnabled: 1
   verticalLookEnabled: 1
   customInputNames: 0
+  airControl: 0.1
+  airSprintEnabled: 0
   jumpSpeed: 10
   variableHeight: 0
   coyoteTime: 0.1
@@ -796,6 +798,11 @@ MonoBehaviour:
   groundforce: 2
   gravityCap: 30
   baseFallVelocity: 0.5
+  airResistance: 4
+  airMoveSpeed: 10
+  airStrafeMult: 0.8
+  airBackwardsMult: 0.5
+  airSprintMult: 0
   moveSpeed: 10
   slopeSlideSpeed: 0
   acceleration: 0
