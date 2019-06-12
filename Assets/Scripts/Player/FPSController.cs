@@ -44,7 +44,7 @@ public class FPSController : MonoBehaviour{
     public float airResistance;
     public float airMoveSpeed;
     public float airStrafeMult;
-    public float airBackwardsMult;
+    public float airBackwardMult;
     [ConditionalHide("airSprintEnabled",true)]
     public float airSprintMult;
 
@@ -117,6 +117,9 @@ public class FPSController : MonoBehaviour{
 	Vector3 currentMove;
 	Vector3 forward;
 	Vector3 side;
+    float currentStrafeMult;
+    float currentBackwardMult;
+    float currentMoveSpeed;
 
     //sliding
     bool slide;
@@ -169,15 +172,11 @@ public class FPSController : MonoBehaviour{
         lastMove = currentMove;
         currentMove = Vector3.zero;
         grounded = controller.isGrounded;
+        Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
+        setCurrentMoveVars();
         
         if(grounded){
-            if(moving){
-                currentMove += forward * moveSpeed * yIn;
-                if(yIn < 0){
-                    currentMove *= backwardMult;
-                }
-                currentMove += side * moveSpeed * xIn * strafeMult;
-            }
+            currentMove = GetHorizontalMove();
             yVel = -groundforce;
             timeSinceGrounded = 0;
             jumping = false;
@@ -187,16 +186,11 @@ public class FPSController : MonoBehaviour{
                 }
             }
         }else{
-            Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
+            Vector3 targetMove = GetHorizontalMove();
             if(moving){
-                Vector3 targetMove = forward * airMoveSpeed * yIn;
-                if(yIn < 0){
-                    targetMove *= airBackwardsMult;
-                }
-                targetMove += side * airMoveSpeed * xIn * airStrafeMult;
                 currentMove = Vector3.Lerp(lastMoveH,targetMove,airControl);
             }else{
-                currentMove = Vector3.MoveTowards(lastMoveH,Vector3.zero,airResistance*Time.deltaTime);
+                currentMove = Vector3.MoveTowards(lastMoveH,targetMove,airResistance*Time.deltaTime);
             }
             if(timeSinceGrounded <= 0 && !jumping){
                 yVel = -baseFallVelocity;
@@ -241,6 +235,36 @@ public class FPSController : MonoBehaviour{
         currentMove += Vector3.up * yVel;
 
         controller.Move(currentMove * Time.deltaTime);
+    }
+
+    void setCurrentMoveVars(){
+        if(grounded){
+            currentMoveSpeed = moveSpeed;
+            currentStrafeMult = strafeMult;
+            currentBackwardMult = backwardMult;
+            if(running && sprintEnabled){
+                currentMoveSpeed *= sprintMult;
+            }
+        }else{
+            currentMoveSpeed = airMoveSpeed;
+            currentStrafeMult = airStrafeMult;
+            currentBackwardMult = airBackwardMult;
+            if(running && airSprintEnabled){
+                currentMoveSpeed *= airSprintMult;
+            }
+        }
+    }
+
+    Vector3 GetHorizontalMove(){
+        Vector3 targetMove = Vector3.zero;
+        if(moving){
+            targetMove += forward * currentMoveSpeed * yIn;
+            if(yIn < 0){
+                targetMove *= currentBackwardMult;
+            }
+            targetMove += side * currentMoveSpeed * xIn * currentStrafeMult;
+        }
+        return targetMove;
     }
 
     void Jump(){
