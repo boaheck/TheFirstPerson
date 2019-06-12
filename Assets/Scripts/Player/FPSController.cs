@@ -174,9 +174,18 @@ public class FPSController : MonoBehaviour{
         grounded = controller.isGrounded;
         Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
         setCurrentMoveVars();
-        
+        Vector3 targetMove = GetHorizontalMove();
+
         if(grounded){
-            currentMove = GetHorizontalMove();
+            if(momentumEnabled){
+                if(moving || targetMove.magnitude < lastMoveH.magnitude){
+                    currentMove = Vector3.MoveTowards(lastMoveH,targetMove,Time.deltaTime * deceleration);
+                }else{
+                    currentMove = Vector3.MoveTowards(lastMoveH,targetMove,Time.deltaTime * acceleration);
+                }
+            }else{
+                currentMove = targetMove;
+            }
             yVel = -groundforce;
             timeSinceGrounded = 0;
             jumping = false;
@@ -186,7 +195,6 @@ public class FPSController : MonoBehaviour{
                 }
             }
         }else{
-            Vector3 targetMove = GetHorizontalMove();
             if(moving){
                 currentMove = Vector3.Lerp(lastMoveH,targetMove,airControl);
             }else{
@@ -199,26 +207,6 @@ public class FPSController : MonoBehaviour{
                 if(jumpPressed > 0 && !jumping){
                     Jump();
                 }
-            }
-
-            
-            if(jumpHeld){
-                if(jumping){
-                    if(variableHeight){
-                        gravMult = jumpGravityMult;
-                    }
-                }
-            }else if(jumping){
-                jumping = false;
-                if(variableHeight){
-                    gravMult = postJumpGravityMult;
-                }
-            }else if(yVel > 0){
-                if(variableHeight){
-                    gravMult = postJumpGravityMult;
-                }
-            }else{
-                gravMult = 1.0f;
             }
 
             yVel -= gravity * gravMult * Time.deltaTime;
@@ -252,6 +240,30 @@ public class FPSController : MonoBehaviour{
             if(running && airSprintEnabled){
                 currentMoveSpeed *= airSprintMult;
             }
+
+            if(jumpHeld){
+                if(jumping){
+                    if(variableHeight){
+                        gravMult = jumpGravityMult;
+                    }
+                    if(yVel < 0){
+                        jumping = false;
+                        gravMult = 1.0f;
+                    }
+                }
+            }else if(jumping){
+                jumping = false;
+                if(variableHeight){
+                    gravMult = postJumpGravityMult;
+                }
+            }else if(yVel > 0){
+                if(variableHeight){
+                    gravMult = postJumpGravityMult;
+                }
+            }else{
+                gravMult = 1.0f;
+            }
+
         }
     }
 
@@ -298,8 +310,6 @@ public class FPSController : MonoBehaviour{
 
         if(verticalLookEnabled){
             verticalLook -= yMouse * sensitivity * Time.deltaTime;
-            
-            //clamp vertical look to vertical look limit.
             if(verticalLook > verticalLookLimit && verticalLook < 180){
                 verticalLook = verticalLookLimit;
             }else if(verticalLook > 180 && verticalLook < 360 - verticalLookLimit){
