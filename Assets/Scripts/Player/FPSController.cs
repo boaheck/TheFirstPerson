@@ -33,6 +33,8 @@ public class FPSController : MonoBehaviour{
     public float jumpGravityMult;
     [ConditionalHide(new string[]{"jumpEnabled","variableHeight"},true,false)]
     public float postJumpGravityMult;
+    [ConditionalHide(new string[]{"jumpEnabled","slopeSlideEnabled"},true,false)]
+    public float slopeJumpKickbackSpeed;
 
     [Header("Gravity Settings")]
     public float gravity;
@@ -117,13 +119,16 @@ public class FPSController : MonoBehaviour{
 	Vector3 currentMove;
 	Vector3 forward;
 	Vector3 side;
+    Vector3 moveDelta;
     float currentStrafeMult;
     float currentBackwardMult;
     float currentMoveSpeed;
+    bool instantMomentumChange = false;
 
     //sliding
     bool slide;
 	Vector3 hitNormal;
+    Vector3 slideMove;
 
     //crouching
     float standingHeight;
@@ -169,15 +174,33 @@ public class FPSController : MonoBehaviour{
     void UpdateMovement(){
         forward = transform.forward;
         side = transform.right;
-        lastMove = currentMove;
         currentMove = Vector3.zero;
         grounded = controller.isGrounded;
+        slideMove = Vector3.zero;
         Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
         setCurrentMoveVars();
         Vector3 targetMove = GetHorizontalMove();
 
+        if(slide && slopeSlideEnabled){
+            slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+            Vector3.OrthoNormalize(ref hitNormal,ref slideMove);
+            slideMove *= slopeSlideSpeed;
+            Vector3 slideMoveh = Vector3.Scale(slideMove,new Vector3(1,0,1));
+            if(Vector3.Angle(targetMove,slideMove) > 100){
+                targetMove = slideMoveh;
+            }else{
+                targetMove += slideMoveh;
+            }
+            if(jumpEnabled){
+                if(jumpPressed > 0){
+                    targetMove = slideMoveh.normalized * slopeJumpKickbackSpeed;
+                    instantMomentumChange = true;
+                }
+            }
+        }
+
         if(grounded){
-            if(momentumEnabled){
+            if(momentumEnabled && !instantMomentumChange){
                 if(moving || targetMove.magnitude < lastMoveH.magnitude){
                     currentMove = Vector3.MoveTowards(lastMoveH,targetMove,Time.deltaTime * deceleration);
                 }else{
@@ -186,7 +209,7 @@ public class FPSController : MonoBehaviour{
             }else{
                 currentMove = targetMove;
             }
-            yVel = -groundforce;
+            yVel = Mathf.Min(-groundforce,slideMove.y);
             timeSinceGrounded = 0;
             jumping = false;
             if(jumpEnabled){
@@ -195,6 +218,10 @@ public class FPSController : MonoBehaviour{
                 }
             }
         }else{
+            slide = false;
+            if ((controller.collisionFlags & CollisionFlags.Above) != 0 && yVel > 0){
+                yVel = 0;
+            }
             if(moving){
                 currentMove = Vector3.Lerp(lastMoveH,targetMove,airControl);
             }else{
@@ -219,10 +246,23 @@ public class FPSController : MonoBehaviour{
                 jumpPressed -= Time.deltaTime;
             }
         }
-
+        
         currentMove += Vector3.up * yVel;
-
+        moveDelta = transform.transform.position;
         controller.Move(currentMove * Time.deltaTime);
+        moveDelta = transform.position - moveDelta;
+        lastMove = moveDelta * 1/Time.deltaTime;
+        instantMomentumChange = false;
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit){
+        if ((controller.collisionFlags & CollisionFlags.Below) != 0 && Vector3.Angle(hit.normal,Vector3.up) > controller.slopeLimit){
+            print("sliding!");
+            slide = true;
+            hitNormal = hit.normal;
+        }else{
+            slide = false;
+        }
     }
 
     void setCurrentMoveVars(){
