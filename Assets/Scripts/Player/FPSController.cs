@@ -29,10 +29,10 @@ public class FPSController : MonoBehaviour{
     public float coyoteTime;
     [ConditionalHide("jumpEnabled",true)]
     public float bunnyhopTolerance;
-    [ConditionalHide("jumpEnabled",true)]
-    public float jumpGravity;
     [ConditionalHide(new string[]{"jumpEnabled","variableHeight"},true,false)]
-    public float postJumpGravity;
+    public float jumpGravityMult;
+    [ConditionalHide(new string[]{"jumpEnabled","variableHeight"},true,false)]
+    public float postJumpGravityMult;
 
     [Header("Gravity Settings")]
     public float gravity;
@@ -183,9 +183,7 @@ public class FPSController : MonoBehaviour{
             jumping = false;
             if(jumpEnabled){
                 if(jumpPressed > 0){
-                    jumping = true;
-                    yVel = jumpSpeed;
-                    jumpPressed = 0;
+                    Jump();
                 }
             }
         }else{
@@ -205,10 +203,28 @@ public class FPSController : MonoBehaviour{
             }
             if(jumpEnabled && timeSinceGrounded < coyoteTime){
                 if(jumpPressed > 0 && !jumping){
-                    jumping = true;
-                    yVel = jumpSpeed;
-                    jumpPressed = 0;
+                    Jump();
                 }
+            }
+
+            
+            if(jumpHeld){
+                if(jumping){
+                    if(variableHeight){
+                        gravMult = jumpGravityMult;
+                    }
+                }
+            }else if(jumping){
+                jumping = false;
+                if(variableHeight){
+                    gravMult = postJumpGravityMult;
+                }
+            }else if(yVel > 0){
+                if(variableHeight){
+                    gravMult = postJumpGravityMult;
+                }
+            }else{
+                gravMult = 1.0f;
             }
 
             yVel -= gravity * gravMult * Time.deltaTime;
@@ -225,6 +241,12 @@ public class FPSController : MonoBehaviour{
         currentMove += Vector3.up * yVel;
 
         controller.Move(currentMove * Time.deltaTime);
+    }
+
+    void Jump(){
+        jumping = true;
+        yVel = jumpSpeed;
+        jumpPressed = 0;
     }
 
     void UpdateMouseLock(){
@@ -273,9 +295,9 @@ public class FPSController : MonoBehaviour{
         xMouse = Input.GetAxis(xMouseName);
         yMouse = Input.GetAxis(yMouseName);
         moving = Mathf.Abs(xIn) > 0.1 || Mathf.Abs(yIn) > 0.1;
-        jumpHeld = Input.GetButton(jumpBtn);
         crouching = Input.GetButton(crouchBtn);
         running = Input.GetButton(runBtn);
+        jumpHeld = Input.GetButton(jumpBtn);
         if(Input.GetButtonDown(jumpBtn)){
             jumpPressed = coyoteTime;
         }
