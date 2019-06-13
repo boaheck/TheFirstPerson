@@ -34,6 +34,8 @@ public class FPSController : MonoBehaviour{
     [ConditionalHide(new string[]{"jumpEnabled","variableHeight"},true,false)]
     public float postJumpGravityMult;
     [ConditionalHide(new string[]{"jumpEnabled","slopeSlideEnabled"},true,false)]
+    public bool jumpWhileSliding;
+    [ConditionalHide(new string[]{"jumpEnabled","slopeSlideEnabled"},true,false)]
     public float slopeJumpKickbackSpeed;
 
     [Header("Gravity Settings")]
@@ -180,8 +182,12 @@ public class FPSController : MonoBehaviour{
         Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
         setCurrentMoveVars();
         Vector3 targetMove = GetHorizontalMove();
-
-        if(slide && slopeSlideEnabled){
+        if(grounded && Vector3.Angle(hitNormal,Vector3.up) >= controller.slopeLimit && slopeSlideEnabled){
+            slide = true;
+        }else{
+            slide = false;
+        }
+        if(slide){
             slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize(ref hitNormal,ref slideMove);
             slideMove *= slopeSlideSpeed;
@@ -191,7 +197,7 @@ public class FPSController : MonoBehaviour{
             }else{
                 targetMove += slideMoveh;
             }
-            if(jumpEnabled){
+            if(jumpEnabled && jumpWhileSliding){
                 if(jumpPressed > 0){
                     targetMove = slideMoveh.normalized * slopeJumpKickbackSpeed;
                     instantMomentumChange = true;
@@ -209,16 +215,22 @@ public class FPSController : MonoBehaviour{
             }else{
                 currentMove = targetMove;
             }
-            yVel = Mathf.Min(-groundforce,slideMove.y);
+            if(!slide){
+                yVel = Mathf.MoveTowards(yVel,(-groundforce/10) + (-groundforce * (Vector3.Angle(hitNormal,Vector3.up)/90.0f)), groundforce * Time.deltaTime);
+            }else{
+                yVel += slideMove.y;
+                if(yVel < -gravityCap){
+                    yVel = -gravityCap;
+                }
+            }
             timeSinceGrounded = 0;
             jumping = false;
-            if(jumpEnabled){
+            if(jumpEnabled && (jumpWhileSliding || !slide)){
                 if(jumpPressed > 0){
                     Jump();
                 }
             }
         }else{
-            slide = false;
             if ((controller.collisionFlags & CollisionFlags.Above) != 0 && yVel > 0){
                 yVel = 0;
             }
@@ -230,7 +242,7 @@ public class FPSController : MonoBehaviour{
             if(timeSinceGrounded <= 0 && !jumping){
                 yVel = -baseFallVelocity;
             }
-            if(jumpEnabled && timeSinceGrounded < coyoteTime){
+            if(jumpEnabled && timeSinceGrounded < coyoteTime  && (jumpWhileSliding || !slide)){
                 if(jumpPressed > 0 && !jumping){
                     Jump();
                 }
@@ -256,13 +268,7 @@ public class FPSController : MonoBehaviour{
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit){
-        if ((controller.collisionFlags & CollisionFlags.Below) != 0 && Vector3.Angle(hit.normal,Vector3.up) > controller.slopeLimit){
-            print("sliding!");
-            slide = true;
-            hitNormal = hit.normal;
-        }else{
-            slide = false;
-        }
+        hitNormal = hit.normal;
     }
 
     void setCurrentMoveVars(){
@@ -323,6 +329,7 @@ public class FPSController : MonoBehaviour{
         jumping = true;
         yVel = jumpSpeed;
         jumpPressed = 0;
+        print("JUMP! " + Time.frameCount);
     }
 
     void UpdateMouseLock(){
