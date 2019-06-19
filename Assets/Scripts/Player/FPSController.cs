@@ -40,7 +40,8 @@ public class FPSController : MonoBehaviour{
 
     [Header("Gravity Settings")]
     public float gravity;
-	public float groundforce; 
+    public float baseGroundForce; 
+	public float maxGroundForce; 
     public float gravityCap;
     public float baseFallVelocity;
 
@@ -130,7 +131,9 @@ public class FPSController : MonoBehaviour{
     //sliding
     bool slide;
 	Vector3 hitNormal;
+    Vector3 hitPoint;
     Vector3 slideMove;
+    RaycastHit ledgeCheck;
 
     //crouching
     float standingHeight;
@@ -182,8 +185,25 @@ public class FPSController : MonoBehaviour{
         Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
         setCurrentMoveVars();
         Vector3 targetMove = GetHorizontalMove();
+
         if(grounded && Vector3.Angle(hitNormal,Vector3.up) >= controller.slopeLimit && slopeSlideEnabled){
-            slide = true;
+            if(Physics.Raycast(transform.position,Vector3.down,out ledgeCheck,0.1f+(controller.radius*2))){
+                if(Vector3.Angle(ledgeCheck.normal,Vector3.up) >= controller.slopeLimit){
+                    slide = true;
+                    print("slopeA " + Time.frameCount);
+                }else{
+                    slide = false;
+                }
+            }else if(Physics.Raycast(transform.position+(controller.radius * Vector3.up),new Vector3(hitPoint.x,transform.position.y,hitPoint.z) - transform.position,out ledgeCheck,0.1f+(controller.radius*2))){
+                if(Vector3.Angle(ledgeCheck.normal,Vector3.up) >= controller.slopeLimit){
+                    slide = true;
+                    print("slopeB " + Time.frameCount);
+                }else{
+                    slide = false;
+                }
+            }else{
+                slide = false;
+            }
         }else{
             slide = false;
         }
@@ -192,7 +212,7 @@ public class FPSController : MonoBehaviour{
             Vector3.OrthoNormalize(ref hitNormal,ref slideMove);
             slideMove *= slopeSlideSpeed;
             Vector3 slideMoveh = Vector3.Scale(slideMove,new Vector3(1,0,1));
-            if(Vector3.Angle(targetMove,slideMove) > 100){
+            if(Vector3.Angle(targetMove,slideMoveh) > 100){
                 targetMove = slideMoveh;
             }else{
                 targetMove += slideMoveh;
@@ -216,7 +236,7 @@ public class FPSController : MonoBehaviour{
                 currentMove = targetMove;
             }
             if(!slide){
-                yVel = Mathf.MoveTowards(yVel,(-groundforce/10) + (-groundforce * (Vector3.Angle(hitNormal,Vector3.up)/90.0f)), groundforce * Time.deltaTime);
+                yVel = Mathf.MoveTowards(yVel,baseGroundForce + (-maxGroundForce * (Vector3.Angle(hitNormal,Vector3.up)/90.0f)), maxGroundForce * Time.deltaTime);
             }else{
                 yVel += slideMove.y;
                 if(yVel < -gravityCap){
@@ -269,6 +289,7 @@ public class FPSController : MonoBehaviour{
 
     private void OnControllerColliderHit(ControllerColliderHit hit){
         hitNormal = hit.normal;
+        hitPoint = hit.point;
     }
 
     void setCurrentMoveVars(){
