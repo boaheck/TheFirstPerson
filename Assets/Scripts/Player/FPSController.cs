@@ -35,7 +35,7 @@ public class FPSController : MonoBehaviour{
     public float postJumpGravityMult;
     [ConditionalHide(new string[]{"jumpEnabled","slopeSlideEnabled"},true,false)]
     public bool jumpWhileSliding;
-    [ConditionalHide(new string[]{"jumpEnabled","slopeSlideEnabled"},true,false)]
+    [ConditionalHide(new string[]{"jumpEnabled","slopeSlideEnabled","jumpWhileSliding"},true,false)]
     public float slopeJumpKickbackSpeed;
 
     [Header("Gravity Settings")]
@@ -73,11 +73,15 @@ public class FPSController : MonoBehaviour{
 
     [Header("CrouchSettings")]
     [ConditionalHide("crouchEnabled",true)]
+    public bool crouchToggleStyle;
+    [ConditionalHide("crouchEnabled",true)]
     public float crouchColliderHeight;
     [ConditionalHide("crouchEnabled",true)]
-    public float crouchCameraHeight;
-    [ConditionalHide("crouchEnabled",true)]
     public float crouchMult;
+    [ConditionalHide("crouchEnabled",true)]
+    public float crouchTransitionSpeed;
+    [ConditionalHide("crouchEnabled",true)]
+    public LayerMask crouchHeadHitLayerMask;
 
     [Header("Input Names")]
     [ConditionalHide("customInputNames",true)]
@@ -137,7 +141,8 @@ public class FPSController : MonoBehaviour{
 
     //crouching
     float standingHeight;
-    float standingCameraHeight;
+    float cameraOffset;
+    RaycastHit headHit;
 
     //Input Name Defaults (assuming default unity axes are set up)
     string jumpBtn = "Jump";
@@ -154,7 +159,8 @@ public class FPSController : MonoBehaviour{
 
         //get the transform of a child with a camera component
         cam = transform.GetComponentInChildren<Camera>().transform;
-
+        standingHeight = controller.height;
+        cameraOffset = standingHeight - cam.position.y;
         if(customInputNames){
             jumpBtn = jumpBtnCustom;
             crouchBtn = crouchBtnCustom;
@@ -180,13 +186,30 @@ public class FPSController : MonoBehaviour{
         forward = transform.forward;
         side = transform.right;
         currentMove = Vector3.zero;
-        grounded = controller.isGrounded;
+        
         slideMove = Vector3.zero;
         Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
+
+        if(crouchEnabled && crouching){
+            if(controller.height > crouchColliderHeight){
+                controller.height = Mathf.MoveTowards(controller.height,crouchColliderHeight,Time.deltaTime * crouchTransitionSpeed);
+            }
+        }else{
+            if(controller.height < standingHeight){
+                if(Physics.SphereCast(transform.position+(Vector3.up * 0.01f),controller.radius,Vector3.up,out headHit,standingHeight,crouchHeadHitLayerMask.value)){
+                    crouching = true;
+                }else{
+                    controller.height = Mathf.MoveTowards(controller.height,standingHeight,Time.deltaTime * crouchTransitionSpeed);
+                }
+            }
+        }
+        
         setCurrentMoveVars();
         Vector3 targetMove = GetHorizontalMove();
-
-        if(grounded && Vector3.Angle(hitNormal,Vector3.up) >= controller.slopeLimit && slopeSlideEnabled){
+        controller.center = new Vector3(0,controller.height/2.0f,0);
+        cam.localPosition = new Vector3(cam.localPosition.x,controller.height - cameraOffset,cam.localPosition.z);
+        
+        if(grounded && Vector3.Angle(hitNormal,Vector3.up) >= controller.slopeLimit && slopeSlideEnabled && hitPoint.y < transform.position.y + (controller.height - controller.radius)){
             if(Physics.Raycast(transform.position,Vector3.down,out ledgeCheck,0.1f+(controller.radius*2))){
                 if(Vector3.Angle(ledgeCheck.normal,Vector3.up) >= controller.slopeLimit){
                     slide = true;
@@ -207,6 +230,7 @@ public class FPSController : MonoBehaviour{
         }else{
             slide = false;
         }
+
         if(slide){
             slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize(ref hitNormal,ref slideMove);
@@ -297,14 +321,16 @@ public class FPSController : MonoBehaviour{
             currentMoveSpeed = moveSpeed;
             currentStrafeMult = strafeMult;
             currentBackwardMult = backwardMult;
-            if(running && sprintEnabled){
+            if(crouching && crouchEnabled){
+                currentMoveSpeed *= crouchMult;
+            }else if(running && sprintEnabled){
                 currentMoveSpeed *= sprintMult;
             }
         }else{
             currentMoveSpeed = airMoveSpeed;
             currentStrafeMult = airStrafeMult;
             currentBackwardMult = airBackwardMult;
-            if(running && airSprintEnabled){
+            if(running && airSprintEnabled && !(crouching && crouchEnabled)){
                 currentMoveSpeed *= airSprintMult;
             }
 
@@ -332,6 +358,7 @@ public class FPSController : MonoBehaviour{
             }
 
         }
+        grounded = controller.isGrounded;
     }
 
     Vector3 GetHorizontalMove(){
@@ -397,7 +424,13 @@ public class FPSController : MonoBehaviour{
         xMouse = Input.GetAxis(xMouseName);
         yMouse = Input.GetAxis(yMouseName);
         moving = Mathf.Abs(xIn) > 0.1 || Mathf.Abs(yIn) > 0.1;
-        crouching = Input.GetButton(crouchBtn);
+        if(crouchToggleStyle){
+            if(Input.GetButtonDown(crouchBtn)){
+                crouching = !crouching;
+            }
+        }else{
+            crouching = Input.GetButton(crouchBtn);
+        }
         running = Input.GetButton(runBtn);
         jumpHeld = Input.GetButton(jumpBtn);
         if(Input.GetButtonDown(jumpBtn)){
