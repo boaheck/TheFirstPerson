@@ -130,8 +130,9 @@ public class FPSController : MonoBehaviour{
     float currentStrafeMult;
     float currentBackwardMult;
     float currentMoveSpeed;
+    float groundAngle;
     bool instantMomentumChange = false;
-
+    
     //sliding
     bool slide;
 	Vector3 hitNormal;
@@ -186,7 +187,7 @@ public class FPSController : MonoBehaviour{
         forward = transform.forward;
         side = transform.right;
         currentMove = Vector3.zero;
-        
+        grounded = controller.isGrounded;
         slideMove = Vector3.zero;
         Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1,0,1));
 
@@ -209,23 +210,22 @@ public class FPSController : MonoBehaviour{
         controller.center = new Vector3(0,controller.height/2.0f,0);
         cam.localPosition = new Vector3(cam.localPosition.x,controller.height - cameraOffset,cam.localPosition.z);
         
-        if(grounded && Vector3.Angle(hitNormal,Vector3.up) >= controller.slopeLimit && slopeSlideEnabled && hitPoint.y < transform.position.y + (controller.height - controller.radius)){
+        if(grounded && groundAngle >= controller.slopeLimit && slopeSlideEnabled){
             if(Physics.Raycast(transform.position,Vector3.down,out ledgeCheck,0.1f+(controller.radius*2))){
                 if(Vector3.Angle(ledgeCheck.normal,Vector3.up) >= controller.slopeLimit){
                     slide = true;
-                    print("slopeA " + Time.frameCount);
                 }else{
                     slide = false;
                 }
             }else if(Physics.Raycast(transform.position+(controller.radius * Vector3.up),new Vector3(hitPoint.x,transform.position.y,hitPoint.z) - transform.position,out ledgeCheck,0.1f+(controller.radius*2))){
                 if(Vector3.Angle(ledgeCheck.normal,Vector3.up) >= controller.slopeLimit){
                     slide = true;
-                    print("slopeB " + Time.frameCount);
                 }else{
                     slide = false;
                 }
             }else{
                 slide = false;
+                groundAngle = 0;
             }
         }else{
             slide = false;
@@ -234,8 +234,8 @@ public class FPSController : MonoBehaviour{
         if(slide){
             slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize(ref hitNormal,ref slideMove);
-            slideMove *= slopeSlideSpeed;
-            Vector3 slideMoveh = Vector3.Scale(slideMove,new Vector3(1,0,1));
+            Vector3 slideMoveh = Vector3.Scale(slideMove,new Vector3(1,0,1)).normalized * slopeSlideSpeed;
+
             if(Vector3.Angle(targetMove,slideMoveh) > 100){
                 targetMove = slideMoveh;
             }else{
@@ -259,19 +259,19 @@ public class FPSController : MonoBehaviour{
             }else{
                 currentMove = targetMove;
             }
-            if(!slide){
-                yVel = Mathf.MoveTowards(yVel,baseGroundForce + (-maxGroundForce * (Vector3.Angle(hitNormal,Vector3.up)/90.0f)), maxGroundForce * Time.deltaTime);
-            }else{
-                yVel += slideMove.y;
-                if(yVel < -gravityCap){
-                    yVel = -gravityCap;
-                }
-            }
+            yVel = -baseGroundForce + (-maxGroundForce * (groundAngle/90.0f));
+            
+            
+            
             timeSinceGrounded = 0;
             jumping = false;
             if(jumpEnabled && (jumpWhileSliding || !slide)){
                 if(jumpPressed > 0){
                     Jump();
+                }
+            }else if(slide){
+                if(jumpPressed > 0){
+                    jumpPressed -= Time.deltaTime;
                 }
             }
         }else{
@@ -284,7 +284,11 @@ public class FPSController : MonoBehaviour{
                 currentMove = Vector3.MoveTowards(lastMoveH,targetMove,airResistance*Time.deltaTime);
             }
             if(timeSinceGrounded <= 0 && !jumping){
-                yVel = -baseFallVelocity;
+                if(lastMove.y < -baseFallVelocity){
+                    yVel = lastMove.y;
+                }else if(yVel <= 0){
+                    yVel = -baseFallVelocity;
+                }
             }
             if(jumpEnabled && timeSinceGrounded < coyoteTime  && (jumpWhileSliding || !slide)){
                 if(jumpPressed > 0 && !jumping){
@@ -313,6 +317,7 @@ public class FPSController : MonoBehaviour{
 
     private void OnControllerColliderHit(ControllerColliderHit hit){
         hitNormal = hit.normal;
+        groundAngle = Vector3.Angle(hitNormal,Vector3.up);
         hitPoint = hit.point;
     }
 
@@ -358,7 +363,7 @@ public class FPSController : MonoBehaviour{
             }
 
         }
-        grounded = controller.isGrounded;
+        
     }
 
     Vector3 GetHorizontalMove(){
@@ -377,7 +382,7 @@ public class FPSController : MonoBehaviour{
         jumping = true;
         yVel = jumpSpeed;
         jumpPressed = 0;
-        print("JUMP! " + Time.frameCount);
+        print("JUMP! " + Time.frameCount + " - sliding :"+ slide + " - angle " + groundAngle + " - grounded :" + timeSinceGrounded);
     }
 
     void UpdateMouseLock(){
