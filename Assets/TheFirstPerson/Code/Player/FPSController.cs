@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TheFirstPerson;
 
 [RequireComponent(typeof(CharacterController))]
 public class FPSController : MonoBehaviour{
@@ -235,7 +236,6 @@ public class FPSController : MonoBehaviour{
             slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize(ref hitNormal,ref slideMove);
             Vector3 slideMoveh = Vector3.Scale(slideMove,new Vector3(1,0,1)).normalized * slopeSlideSpeed;
-
             if(Vector3.Angle(targetMove,slideMoveh) > 100){
                 targetMove = slideMoveh;
             }else{
@@ -260,9 +260,6 @@ public class FPSController : MonoBehaviour{
                 currentMove = targetMove;
             }
             yVel = -baseGroundForce + (-maxGroundForce * (groundAngle/90.0f));
-            
-            
-            
             timeSinceGrounded = 0;
             jumping = false;
             if(jumpEnabled && (jumpWhileSliding || !slide)){
@@ -361,9 +358,7 @@ public class FPSController : MonoBehaviour{
             }else{
                 gravMult = 1.0f;
             }
-
         }
-        
     }
 
     Vector3 GetHorizontalMove(){
@@ -382,7 +377,6 @@ public class FPSController : MonoBehaviour{
         jumping = true;
         yVel = jumpSpeed;
         jumpPressed = 0;
-        print("JUMP! " + Time.frameCount + " - sliding :"+ slide + " - angle " + groundAngle + " - grounded :" + timeSinceGrounded);
     }
 
     void UpdateMouseLock(){
@@ -441,6 +435,47 @@ public class FPSController : MonoBehaviour{
         if(Input.GetButtonDown(jumpBtn)){
             jumpPressed = coyoteTime;
         }
+    }
+
+    TFPData GetData(){
+        return new TFPData(moving, jumpHeld, crouching, running, mouseLocked, jumpPressed, xIn, yIn, xMouse, yMouse,
+            jumping, grounded, timeSinceGrounded, yVel, slide,
+            gravMult, currentStrafeMult, currentBackwardMult, currentMoveSpeed, groundAngle,
+            lastMove, currentMove, forward, side, moveDelta, hitNormal, hitPoint, slideMove,
+            standingHeight, cameraOffset)
+    }
+
+    void SetData(TFPData newData){
+        moving = newData.moving;
+        jumpHeld = newData.jumpHeld;
+        crouching = newData.crouching;
+        running = newData.running;
+        mouseLocked = newData.mouseLocked;
+        jumpPressed = newData.jumpPressed;
+        xIn = newData.xIn;
+        yIn = newData.yIn;
+        xMouse = newData.xMouse;
+        yMouse = newData.yMouse;
+        jumping = newData.jumping;
+        grounded = newData.grounded;
+        timeSinceGrounded = newData.timeSinceGrounded;
+        yVel = newData.yVel;
+        slide = newData.slide;
+        gravMult = newData.gravMult;
+        currentStrafeMult = newData.currentStrafeMult;
+        currentBackwardMult = newData.currentBackwardMult;
+        currentMoveSpeed = newData.currentMoveSpeed;
+        groundAngle = newData.groundAngle;
+        lastMove = newData.lastMove;
+        currentMove = newData.currentMove;
+        forward = newData.forward;
+        side = newData.side;
+        moveDelta = newData.moveDelta;
+        hitNormal = newData.hitNormal;
+        hitPoint = newData.hitPoint;
+        slideMove = newData.slideMove;
+        standingHeight = newData.standingHeight;
+        cameraOffset = newData.cameraOffset;
     }
 
 }
