@@ -2,33 +2,57 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TheFirstPerson;
+using UnityEngine.UI;
 
 public class Jetpack : TFPExtension{
 
     public float jetPower;
     public bool limitFuel;
     public float fuel;
+    public float fuelRegain;
+    public Text fuelGuage;
+    public AudioSource jetSound;
+    public float soundFadeSpeed;
     float fuelLeft;
+    bool jetting;
 
-    public override void ExStart(ref TFPData data){
+    public override void ExStart(ref TFPData data, TFPInfo info){
         fuelLeft = fuel;
     }
 
-    public override void ExPreMove(ref TFPData data){
+    public override void ExPreMove(ref TFPData data, TFPInfo info){
         if((!data.grounded || data.slide) && !data.jumping){
             if(data.jumpPressed > 0){
-                data.timeSinceGrounded = 1;
+                jetting = true;
+                data.timeSinceGrounded = info.coyoteTime + Time.deltaTime;
                 data.jumpPressed = 0;
             }
             if(data.jumpHeld && fuelLeft > 0){
-                print("Jetting");
+                jetting = true;
                 data.yVel = jetPower;
                 if(limitFuel){
                     fuelLeft -= Time.deltaTime;
+                    if(fuelLeft < 0){
+                        fuelLeft = 0;
+                    }
                 }
+                jetSound.volume = Mathf.MoveTowards(jetSound.volume,1.0f,soundFadeSpeed * Time.deltaTime);
+            }else{
+                jetting = false;
             }
         }else if(data.grounded){
-            fuelLeft = fuel;
+            jetting = false;
+            fuelLeft = Mathf.MoveTowards(fuelLeft, fuel, fuelRegain * Time.deltaTime);
+        }else{
+            jetting = false;
+        }
+        if(!jetting){
+            jetSound.volume = Mathf.MoveTowards(jetSound.volume,0.0f,soundFadeSpeed * Time.deltaTime);
+        }
+        if(fuelLeft < fuel){
+            fuelGuage.text = "FUEL: " + fuelLeft.ToString("F2") + " / " + fuel;
+        }else{
+            fuelGuage.text = "";
         }
     }
 }

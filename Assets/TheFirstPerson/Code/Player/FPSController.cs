@@ -159,13 +159,17 @@ public class FPSController : MonoBehaviour{
     string xMouseName = "Mouse X";
     string yMouseName = "Mouse Y";
 
+    TFPInfo controllerInfo;
+
     void Start(){
         controller = GetComponent<CharacterController>();
 
         //get the transform of a child with a camera component
         cam = transform.GetComponentInChildren<Camera>().transform;
         standingHeight = controller.height;
-        cameraOffset = standingHeight - cam.position.y;
+        cameraOffset = standingHeight - cam.localPosition.y;
+
+        //Handle custom input names
         if(customInputNames){
             jumpBtn = jumpBtnCustom;
             crouchBtn = crouchBtnCustom;
@@ -176,18 +180,23 @@ public class FPSController : MonoBehaviour{
             xMouseName = xMouseNameCustom;
             yMouseName = yMouseNameCustom;
         }
-        StartExtensions();
+        controllerInfo = GetInfo();
+        ExecuteExtension("Start");
     }
 
     void Update(){
-        PreUpdateExtensions();
+        ExecuteExtension("PreUpdate");
         UpdateInput();
         UpdateMouseLock();
         if(mouseLocked){
             MouseLook();
         }
         UpdateMovement();
-        PostUpdateExtensions();
+        ExecuteExtension("PostUpdate");
+    }
+
+    void FixedUpdate(){
+        ExecuteExtension("FixedUpdate");
     }
 
     void UpdateMovement(){
@@ -310,7 +319,7 @@ public class FPSController : MonoBehaviour{
             }
         }
         
-        PreMoveExtensions();
+        ExecuteExtension("PreMove");
 
         currentMove += Vector3.up * yVel;
         moveDelta = transform.transform.position;
@@ -318,6 +327,7 @@ public class FPSController : MonoBehaviour{
         moveDelta = transform.position - moveDelta;
         lastMove = moveDelta * 1/Time.deltaTime;
         instantMomentumChange = false;
+        ExecuteExtension("PostMove");
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit){
@@ -453,6 +463,20 @@ public class FPSController : MonoBehaviour{
             standingHeight, cameraOffset);
     }
 
+    TFPInfo GetInfo(){
+        return new TFPInfo(controller, cam,
+            extensionsEnabled, slopeSlideEnabled, sprintEnabled, momentumEnabled, crouchEnabled, jumpEnabled,
+            verticalLookEnabled, customInputNames, airControl, airSprintEnabled,
+            jumpSpeed, variableHeight, coyoteTime, bunnyhopTolerance, jumpGravityMult, postJumpGravityMult,
+            jumpWhileSliding, slopeJumpKickbackSpeed,
+            gravity, baseGroundForce, maxGroundForce, gravityCap, baseFallVelocity,
+            airResistance, airMoveSpeed, airStrafeMult, airBackwardMult, airSprintMult,
+            moveSpeed, slopeSlideSpeed, acceleration, deceleration, sprintMult, strafeMult, backwardMult,
+            sensitivity, verticalLookLimit,
+            crouchToggleStyle, crouchColliderHeight, crouchMult, crouchTransitionSpeed, crouchHeadHitLayerMask,
+            jumpBtn, crouchBtn, runBtn, unlockMouseBtn, xInName, yInName, xMouseName, yMouseName);
+    }
+
     void SetData(TFPData newData){
         moving = newData.moving;
         jumpHeld = newData.jumpHeld;
@@ -486,34 +510,32 @@ public class FPSController : MonoBehaviour{
         cameraOffset = newData.cameraOffset;
     }
 
-    void StartExtensions(){
-        TFPData data = GetData();
-        foreach(TFPExtension extension in Extensions){
-            extension.ExStart(ref data);
+    void ExecuteExtension(string command){
+        if(!extensionsEnabled){
+            return;
         }
-        SetData(data);
-    }
-
-    void PreUpdateExtensions(){
         TFPData data = GetData();
         foreach(TFPExtension extension in Extensions){
-            extension.ExPreUpdate(ref data);
-        }
-        SetData(data);
-    }
-
-    void PostUpdateExtensions(){
-        TFPData data = GetData();
-        foreach(TFPExtension extension in Extensions){
-            extension.ExPostUpdate(ref data);
-        }
-        SetData(data);
-    }
-
-    void PreMoveExtensions(){
-        TFPData data = GetData();
-        foreach(TFPExtension extension in Extensions){
-            extension.ExPreMove(ref data);
+            switch (command){
+                case "Start":
+                    extension.ExStart(ref data, controllerInfo);
+                    break;
+                case "PreUpdate":
+                    extension.ExPreUpdate(ref data, controllerInfo);
+                    break;
+                case "PostUpdate":
+                    extension.ExPostUpdate(ref data, controllerInfo);
+                    break;
+                case "FixedUpdate":
+                    extension.ExFixedUpdate(ref data, controllerInfo);
+                    break;
+                case "PreMove":
+                    extension.ExPreMove(ref data, controllerInfo);
+                    break;
+                default:
+                    break;
+            }
+            
         }
         SetData(data);
     }
