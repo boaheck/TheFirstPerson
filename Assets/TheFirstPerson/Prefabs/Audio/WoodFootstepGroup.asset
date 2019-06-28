@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb4637f5dd4d0a140aff5361ff7d1dbb, type: 3}
+  m_Name: WoodFootstepGroup
+  m_EditorClassIdentifier: 
+  footSounds:
+  - {fileID: 8300000, guid: 6979015e8055a9940b237b6a063a94cc, type: 3}
+  - {fileID: 8300000, guid: 7b0c60c4ded1c634ebcf9a5d39747838, type: 3}
+  - {fileID: 8300000, guid: f58c4b53b1e464749993b968d6c25b96, type: 3}
+  textures:
+  - {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}

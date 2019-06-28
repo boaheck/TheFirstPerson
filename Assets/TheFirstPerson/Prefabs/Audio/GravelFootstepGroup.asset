@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb4637f5dd4d0a140aff5361ff7d1dbb, type: 3}
+  m_Name: GravelFootstepGroup
+  m_EditorClassIdentifier: 
+  footSounds:
+  - {fileID: 8300000, guid: bd545b23c0ef23d4b8d518dbd7c6a057, type: 3}
+  - {fileID: 8300000, guid: b6c1af7a05c40b349b32c239f8e89766, type: 3}
+  - {fileID: 8300000, guid: 29ea97b93a16638498d962f3b6bc594c, type: 3}
+  textures:
+  - {fileID: 10305, guid: 0000000000000000f000000000000000, type: 0}
