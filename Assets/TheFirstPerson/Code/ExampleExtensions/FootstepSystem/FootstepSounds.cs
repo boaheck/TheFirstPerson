@@ -15,8 +15,8 @@ public class FootstepSounds : TFPExtension{
     RaycastHit groundTypeCheck;
 
     public override void ExStart(ref TFPData data, TFPInfo info){
-        leftDistance = distanceBetweenFootsteps;
-        rightDistance = distanceBetweenFootsteps * 2;
+        leftDistance = 0;
+        rightDistance = distanceBetweenFootsteps;
     }
 
     public override void ExPostUpdate(ref TFPData data, TFPInfo info){
@@ -34,14 +34,14 @@ public class FootstepSounds : TFPExtension{
             
         }
         }else{
-            leftDistance = distanceBetweenFootsteps;
-            rightDistance = distanceBetweenFootsteps * 2;
+            leftDistance = 0;
+            rightDistance = distanceBetweenFootsteps;
         }
         
     }
 
     AudioClip GetClip(TFPInfo info){
-        if(Physics.Raycast(transform.position+(Vector3.up*0.1f),Vector3.down,out groundTypeCheck,info.crouchHeadHitLayerMask.value)){
+        if(Physics.SphereCast(transform.position+(Vector3.up*info.controller.radius),info.controller.radius,Vector3.down,out groundTypeCheck,info.crouchHeadHitLayerMask.value)){
             TerrainCollider hitTerrain = groundTypeCheck.transform.GetComponent<TerrainCollider>();
             MeshRenderer hitMesh = groundTypeCheck.transform.GetComponent<MeshRenderer>();
             Texture2D hitTexture;

@@ -146,6 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 346263cb502d6294f8780863a6301738, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  extensionsEnabled: 0
   slopeSlideEnabled: 1
   sprintEnabled: 1
   momentumEnabled: 1
@@ -196,3 +197,4 @@ MonoBehaviour:
   yInNameCustom: Vertical
   xMouseNameCustom: Mouse X
   yMouseNameCustom: Mouse Y
+  Extensions: []
