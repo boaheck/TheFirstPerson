@@ -411,8 +411,9 @@ MonoBehaviour:
   momentumEnabled: 1
   crouchEnabled: 1
   jumpEnabled: 1
-  lookEnabled: 1
+  mouseLookEnabled: 1
   verticalLookEnabled: 1
+  customCameraTransform: 0
   customInputNames: 0
   airControl: 0.447
   airSprintEnabled: 1
@@ -443,6 +444,7 @@ MonoBehaviour:
   backwardMult: 0.5
   sensitivity: 180
   verticalLookLimit: 80
+  cam: {fileID: 0}
   crouchToggleStyle: 0
   crouchColliderHeight: 0.6
   crouchMult: 0.5

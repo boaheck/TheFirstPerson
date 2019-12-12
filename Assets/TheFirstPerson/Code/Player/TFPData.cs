@@ -8,6 +8,7 @@ namespace TheFirstPerson{
         public bool crouching;
         public bool running;
         public bool mouseLocked;
+        public bool mouseLookEnabled;
         public float jumpPressed;
         public float xIn;
         public float yIn;
@@ -34,7 +35,7 @@ namespace TheFirstPerson{
         public float standingHeight;
         public float cameraOffset;
 
-        public TFPData(bool moving, bool jumpHeld, bool crouching, bool running, bool mouseLocked, float jumpPressed, float xIn, float yIn, float xMouse, float yMouse,
+        public TFPData(bool moving, bool jumpHeld, bool crouching, bool running, bool mouseLocked, bool mouseLookEnabled, float jumpPressed, float xIn, float yIn, float xMouse, float yMouse,
             bool jumping, bool grounded, float timeSinceGrounded, float yVel, bool slide,
             float gravMult, float currentStrafeMult, float currentBackwardMult, float currentMoveSpeed, float groundAngle,
             Vector3 lastMove, Vector3 currentMove, Vector3 forward, Vector3 side, Vector3 moveDelta, Vector3 hitNormal, Vector3 hitPoint, Vector3 slideMove,
@@ -45,6 +46,7 @@ namespace TheFirstPerson{
             this.crouching = crouching;
             this.running = running;
             this.mouseLocked = mouseLocked;
+            this.mouseLookEnabled = mouseLookEnabled;
             this.jumpPressed = jumpPressed;
             this.xIn = xIn;
             this.yIn = yIn;

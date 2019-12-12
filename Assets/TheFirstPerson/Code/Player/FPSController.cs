@@ -17,7 +17,7 @@ namespace TheFirstPerson{
         public bool momentumEnabled = true;
         public bool crouchEnabled = true;
         public bool jumpEnabled = true;
-        public bool lookEnabled = true;
+        public bool mouseLookEnabled = true;
         public bool verticalLookEnabled = true;
         public bool customCameraTransform = false;
         public bool customInputNames = false;
@@ -173,7 +173,7 @@ namespace TheFirstPerson{
             if(!customCameraTransform){
                 cam = transform.GetComponentInChildren<Camera>().transform;
             }
-            
+
             standingHeight = controller.height;
             cameraOffset = standingHeight - cam.localPosition.y;
 
@@ -423,7 +423,7 @@ namespace TheFirstPerson{
         }
 
         void MouseLook(){
-            if(lookEnabled){
+            if(mouseLookEnabled){
                 float horizontalLook = transform.eulerAngles.y;
                 float verticalLook = cam.localEulerAngles.x;
 
@@ -441,6 +441,9 @@ namespace TheFirstPerson{
                 }
 
                 transform.localEulerAngles = new Vector3(0,horizontalLook,0);
+                print("lookenabled");
+            }else{
+                print("lookdisabled");
             }
         }
 
@@ -465,7 +468,7 @@ namespace TheFirstPerson{
         }
 
         TFPData GetData(){
-            return new TFPData(moving, jumpHeld, crouching, running, mouseLocked, jumpPressed, xIn, yIn, xMouse, yMouse,
+            return new TFPData(moving, jumpHeld, crouching, running, mouseLocked, mouseLookEnabled, jumpPressed, xIn, yIn, xMouse, yMouse,
                 jumping, grounded, timeSinceGrounded, yVel, slide,
                 gravMult, currentStrafeMult, currentBackwardMult, currentMoveSpeed, groundAngle,
                 lastMove, currentMove, forward, side, moveDelta, hitNormal, hitPoint, slideMove,
@@ -492,6 +495,7 @@ namespace TheFirstPerson{
             crouching = newData.crouching;
             running = newData.running;
             mouseLocked = newData.mouseLocked;
+            mouseLookEnabled = newData.mouseLookEnabled;
             jumpPressed = newData.jumpPressed;
             xIn = newData.xIn;
             yIn = newData.yIn;

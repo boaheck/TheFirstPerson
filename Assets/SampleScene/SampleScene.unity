@@ -7536,11 +7536,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 6268786117941654324, guid: e90e45ff6cb98a84fb1d909c284ce4f0,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6268786117941654322, guid: e90e45ff6cb98a84fb1d909c284ce4f0,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -7610,11 +7605,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: JetpackPlayer
       objectReference: {fileID: 0}
-    - target: {fileID: 1591015338473822605, guid: 7e16467499665554b8d7ef40344d0c52,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1591015338473822603, guid: 7e16467499665554b8d7ef40344d0c52,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -7669,16 +7659,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8413570806672767047, guid: 7e16467499665554b8d7ef40344d0c52,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1591015338473822602, guid: 7e16467499665554b8d7ef40344d0c52,
-        type: 3}
-      propertyPath: lookEnabled
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7e16467499665554b8d7ef40344d0c52, type: 3}
