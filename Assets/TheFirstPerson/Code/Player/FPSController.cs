@@ -44,7 +44,7 @@ namespace TheFirstPerson{
         public float slopeJumpKickbackSpeed = 10;
 
         [Header("Gravity Settings")]
-        public float gravity =15;
+        public float gravity = 15;
         public float baseGroundForce = 3; 
         public float maxGroundForce = 30; 
         public float gravityCap = 50;
@@ -282,7 +282,8 @@ namespace TheFirstPerson{
                 }else{
                     currentMove = targetMove;
                 }
-                yVel = -baseGroundForce + (-maxGroundForce * (groundAngle/90.0f));
+                var targetYVel = -baseGroundForce + (-maxGroundForce * (groundAngle/90.0f));
+                yVel = Mathf.Lerp(lastMove.y,targetYVel,gravity*Time.deltaTime);
                 timeSinceGrounded = 0;
                 jumping = false;
                 if(jumpEnabled && (jumpWhileSliding || !slide)){
