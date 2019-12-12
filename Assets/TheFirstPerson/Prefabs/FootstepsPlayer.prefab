@@ -411,6 +411,7 @@ MonoBehaviour:
   momentumEnabled: 1
   crouchEnabled: 1
   jumpEnabled: 1
+  lookEnabled: 1
   verticalLookEnabled: 1
   customInputNames: 0
   airControl: 0.447
