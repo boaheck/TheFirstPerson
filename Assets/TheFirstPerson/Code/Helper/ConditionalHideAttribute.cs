@@ -21,7 +21,7 @@ public class ConditionalHideAttribute : PropertyAttribute
     public bool InverseCondition2 = false;
 
 
-	// Use this for initialization
+    // Use this for initialization
     public ConditionalHideAttribute(string conditionalSourceField)
     {
         this.ConditionalSourceField = conditionalSourceField;
@@ -50,7 +50,7 @@ public class ConditionalHideAttribute : PropertyAttribute
         this.Inverse = false;
     }
 
-    public ConditionalHideAttribute(string[] conditionalSourceFields,bool[] conditionalSourceFieldInverseBools, bool hideInInspector, bool inverse)
+    public ConditionalHideAttribute(string[] conditionalSourceFields, bool[] conditionalSourceFieldInverseBools, bool hideInInspector, bool inverse)
     {
         this.ConditionalSourceFields = conditionalSourceFields;
         this.ConditionalSourceFieldInverseBools = conditionalSourceFieldInverseBools;
@@ -60,7 +60,7 @@ public class ConditionalHideAttribute : PropertyAttribute
 
     public ConditionalHideAttribute(string[] conditionalSourceFields, bool hideInInspector, bool inverse)
     {
-        this.ConditionalSourceFields = conditionalSourceFields;        
+        this.ConditionalSourceFields = conditionalSourceFields;
         this.HideInInspector = hideInInspector;
         this.Inverse = inverse;
     }

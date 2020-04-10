@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 
-namespace TheFirstPerson{
-    public struct TFPInfo{
+namespace TheFirstPerson
+{
+    public struct TFPInfo
+    {
         public CharacterController controller;
         public Transform cam;
         public bool extensionsEnabled;
@@ -23,8 +25,8 @@ namespace TheFirstPerson{
         public bool jumpWhileSliding;
         public float slopeJumpKickbackSpeed;
         public float gravity;
-        public float baseGroundForce; 
-        public float maxGroundForce; 
+        public float baseGroundForce;
+        public float maxGroundForce;
         public float gravityCap;
         public float baseFallVelocity;
         public float airResistance;
@@ -65,8 +67,9 @@ namespace TheFirstPerson{
             float moveSpeed, float slopeSlideSpeed, float acceleration, float deceleration, float sprintMult, float strafeMult, float backwardMult,
             float sensitivity, float verticalLookLimit,
             bool crouchToggleStyle, float crouchColliderHeight, float crouchMult, float crouchTransitionSpeed, LayerMask crouchHeadHitLayerMask,
-            string jumpBtn, string crouchBtn, string runBtn, string unlockMouseBtn, string xInName, string yInName, string xMouseName, string yMouseName){
-                
+            string jumpBtn, string crouchBtn, string runBtn, string unlockMouseBtn, string xInName, string yInName, string xMouseName, string yMouseName)
+        {
+
             this.controller = controller;
             this.cam = cam;
             this.extensionsEnabled = extensionsEnabled;

@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 
-namespace TheFirstPerson{
-    public struct TFPData{
+namespace TheFirstPerson
+{
+    public struct TFPData
+    {
 
         public bool moving;
         public bool jumpHeld;
@@ -39,8 +41,9 @@ namespace TheFirstPerson{
             bool jumping, bool grounded, float timeSinceGrounded, float yVel, bool slide,
             float gravMult, float currentStrafeMult, float currentBackwardMult, float currentMoveSpeed, float groundAngle,
             Vector3 lastMove, Vector3 currentMove, Vector3 forward, Vector3 side, Vector3 moveDelta, Vector3 hitNormal, Vector3 hitPoint, Vector3 slideMove,
-            float standingHeight, float cameraOffset){
-            
+            float standingHeight, float cameraOffset)
+        {
+
             this.moving = moving;
             this.jumpHeld = jumpHeld;
             this.crouching = crouching;

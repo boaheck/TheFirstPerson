@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TheFirstPerson;
 
-namespace TheFirstPerson{
+namespace TheFirstPerson
+{
     /*
     The base Extension class
 
@@ -16,19 +16,20 @@ namespace TheFirstPerson{
     More event based functions to be added in future.
     */
 
-    public class TFPExtension : MonoBehaviour{
+    public class TFPExtension : MonoBehaviour
+    {
 
         //executes at the end of the Start function in FPSController.cs
-        public virtual void ExStart(ref TFPData data, TFPInfo info){}
+        public virtual void ExStart(ref TFPData data, TFPInfo info) { }
 
         //executes at the start of the Update function in FPSController.cs
-        public virtual void ExPreUpdate(ref TFPData data, TFPInfo info){}
+        public virtual void ExPreUpdate(ref TFPData data, TFPInfo info) { }
 
         //executes at the end of the Update function in FPSController.cs
-        public virtual void ExPostUpdate(ref TFPData data, TFPInfo info){}
+        public virtual void ExPostUpdate(ref TFPData data, TFPInfo info) { }
 
         //executes during the FixedUpdate function in FPSController.cs. Use for physics interactions
-        public virtual void ExFixedUpdate(ref TFPData data, TFPInfo info){}
+        public virtual void ExFixedUpdate(ref TFPData data, TFPInfo info) { }
 
         /*
         executes before the controller.Move function is called in FPSController.cs
@@ -38,6 +39,6 @@ namespace TheFirstPerson{
 
         use this if you want to add custom movement functionality
         */
-        public virtual void ExPreMove(ref TFPData data, TFPInfo info){}
+        public virtual void ExPreMove(ref TFPData data, TFPInfo info) { }
     }
 }

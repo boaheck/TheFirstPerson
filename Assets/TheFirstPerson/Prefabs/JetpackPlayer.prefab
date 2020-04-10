@@ -133,7 +133,7 @@ CharacterController:
   m_SlopeLimit: 44
   m_StepOffset: 0.4
   m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.01
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &1591015338473822602
 MonoBehaviour:
@@ -153,7 +153,7 @@ MonoBehaviour:
   momentumEnabled: 1
   crouchEnabled: 1
   jumpEnabled: 1
-  lookEnabled: 1
+  mouseLookEnabled: 1
   verticalLookEnabled: 1
   customCameraTransform: 0
   customInputNames: 0
@@ -272,7 +272,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8413570806672767044}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1980459831, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_UiScaleMode: 0
@@ -294,7 +294,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8413570806672767044}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1301386320, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreReversedGraphics: 1
@@ -504,7 +504,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8413570806864997130}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
@@ -513,8 +513,6 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 40

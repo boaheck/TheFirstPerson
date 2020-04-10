@@ -132,7 +132,7 @@ CharacterController:
   m_SlopeLimit: 44
   m_StepOffset: 0.4
   m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.01
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &6268786117941654323
 MonoBehaviour:
@@ -152,7 +152,7 @@ MonoBehaviour:
   momentumEnabled: 1
   crouchEnabled: 1
   jumpEnabled: 1
-  lookEnabled: 1
+  mouseLookEnabled: 1
   verticalLookEnabled: 1
   customCameraTransform: 0
   customInputNames: 0
