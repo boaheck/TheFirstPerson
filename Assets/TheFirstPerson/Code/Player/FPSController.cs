@@ -74,6 +74,9 @@ namespace TheFirstPerson
 
         [Header("Mouse Look Settings")]
         public float sensitivity = 180;
+        [Tooltip("In editor this may not work correctly but it will in build")]
+        public bool mouseLockToggleEnabled = true;
+        public bool startMouseLock = true;
         [ConditionalHide("verticalLookEnabled", true)]
         public float verticalLookLimit = 80;
         [ConditionalHide("customCameraTransform", true)]
@@ -99,7 +102,7 @@ namespace TheFirstPerson
         [ConditionalHide("customInputNames", true)]
         public string runBtnCustom = "Fire3";
         [ConditionalHide("customInputNames", true)]
-        string unlockMouseBtnCustom = "Cancel";
+        public string unlockMouseBtnCustom = "Cancel";
         [ConditionalHide("customInputNames", true)]
         public string xInNameCustom = "Horizontal";
         [ConditionalHide("customInputNames", true)]
@@ -116,7 +119,7 @@ namespace TheFirstPerson
         bool jumpHeld;
         bool crouching;
         bool running;
-        bool mouseLocked = true;
+        bool mouseLocked;
         float jumpPressed;
         float xIn;
         float yIn;
@@ -170,7 +173,6 @@ namespace TheFirstPerson
         void Start()
         {
             controller = GetComponent<CharacterController>();
-
             //get the transform of a child with a camera component
             if (!customCameraTransform)
             {
@@ -192,6 +194,9 @@ namespace TheFirstPerson
                 xMouseName = xMouseNameCustom;
                 yMouseName = yMouseNameCustom;
             }
+
+            mouseLocked = startMouseLock;
+
             controllerInfo = GetInfo();
             ExecuteExtension("Start");
         }
@@ -499,13 +504,16 @@ namespace TheFirstPerson
 
         void UpdateMouseLock()
         {
-            if (Input.GetButtonDown(unlockMouseBtn))
+            if (mouseLockToggleEnabled)
             {
-                mouseLocked = false;
-            }
-            else if (Input.GetMouseButtonDown(0))
-            {
-                mouseLocked = true;
+                if (Input.GetButtonDown(unlockMouseBtn))
+                {
+                    mouseLocked = false;
+                }
+                else if (Input.GetMouseButtonDown(0))
+                {
+                    mouseLocked = true;
+                }
             }
 
             if (mouseLocked)
@@ -546,11 +554,6 @@ namespace TheFirstPerson
                 }
 
                 transform.localEulerAngles = new Vector3(0, horizontalLook, 0);
-                print("lookenabled");
-            }
-            else
-            {
-                print("lookdisabled");
             }
         }
 

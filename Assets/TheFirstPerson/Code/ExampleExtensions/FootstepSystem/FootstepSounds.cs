@@ -71,7 +71,6 @@ public class FootstepSounds : TFPExtension
             {
                 return defaultFootsteps.footSounds[Random.Range(0, defaultFootsteps.footSounds.Length)];
             }
-            print(hitTexture);
             foreach (FootstepGroup fsGroup in footsteps)
             {
                 foreach (Texture2D tex in fsGroup.textures)
