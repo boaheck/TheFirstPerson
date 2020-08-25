@@ -555,7 +555,7 @@ namespace TheFirstPerson
         {
             if (mouseLookEnabled)
             {
-                float horizontalLook = transform.eulerAngles.y;
+                float horizontalLook = transform.localEulerAngles.y;
                 float verticalLook = cam.localEulerAngles.x;
 
                 horizontalLook += xMouse * sensitivity;
