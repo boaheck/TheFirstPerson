@@ -7837,13 +7837,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4744611245860568231, guid: 5ae5ccd8d1c0b59459a598c6f18817a4,
         type: 3}
-      propertyPath: customInputNames
-      value: 0
+      propertyPath: Extensions.Array.size
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4744611245860568231, guid: 5ae5ccd8d1c0b59459a598c6f18817a4,
         type: 3}
-      propertyPath: normaliseMoveInput
-      value: 0
+      propertyPath: Extensions.Array.data[2]
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5ae5ccd8d1c0b59459a598c6f18817a4, type: 3}

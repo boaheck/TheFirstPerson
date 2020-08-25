@@ -28,9 +28,11 @@ namespace TheFirstPerson
         //executes at the end of the Update function in FPSController.cs
         public virtual void ExPostUpdate(ref TFPData data, TFPInfo info) { }
 
-        //executes during the FixedUpdate function in FPSController.cs. Use for physics interactions
-        public virtual void ExFixedUpdate(ref TFPData data, TFPInfo info) { }
+        //executes at the start of the FixedUpdate function in FPSController.cs. Use for physics interactions
+        public virtual void ExPreFixedUpdate(ref TFPData data, TFPInfo info) { }
 
+        //executes at the end of the FixedUpdate function in FPSController.cs. Use for physics interactions
+        public virtual void ExPostFixedUpdate(ref TFPData data, TFPInfo info) { }
         /*
         executes before the controller.Move function is called in FPSController.cs
         YVel is applied to current move after this
@@ -40,5 +42,8 @@ namespace TheFirstPerson
         use this if you want to add custom movement functionality
         */
         public virtual void ExPreMove(ref TFPData data, TFPInfo info) { }
+
+        //Executes at the end of the move function at this point all movement for the frame has been handled
+        public virtual void ExPostMove(ref TFPData data, TFPInfo info) { }
     }
 }

@@ -4,6 +4,17 @@ using UnityEngine;
 
 namespace TheFirstPerson
 {
+    public enum ExtFunc
+    {
+        Start,
+        PreUpdate,
+        PostUpdate,
+        PreFixedUpdate,
+        PostFixedUpdate,
+        PreMove,
+        PostMove
+    }
+
     [RequireComponent(typeof(CharacterController))]
     public class FPSController : MonoBehaviour
     {
@@ -27,6 +38,7 @@ namespace TheFirstPerson
         public bool airSprintEnabled = true;
         [Tooltip("This will put a limit of 1 on the magnitude of the horizontal movement input")]
         public bool normaliseMoveInput = false;
+        public bool moveInFixedUpdate = false;
 
         [Header("Jump Settings")]
         [ConditionalHide("jumpEnabled", true)]
@@ -200,28 +212,36 @@ namespace TheFirstPerson
             mouseLocked = startMouseLock;
 
             controllerInfo = GetInfo();
-            ExecuteExtension("Start");
+            ExecuteExtension(ExtFunc.Start);
         }
 
         void Update()
         {
-            ExecuteExtension("PreUpdate");
+            ExecuteExtension(ExtFunc.PreUpdate);
             UpdateInput();
             UpdateMouseLock();
             if (mouseLocked)
             {
                 MouseLook();
             }
-            UpdateMovement();
-            ExecuteExtension("PostUpdate");
+            if (!moveInFixedUpdate)
+            {
+                UpdateMovement(Time.deltaTime);
+            }
+            ExecuteExtension(ExtFunc.PostUpdate);
         }
 
         void FixedUpdate()
         {
-            ExecuteExtension("FixedUpdate");
+            ExecuteExtension(ExtFunc.PreFixedUpdate);
+            if (moveInFixedUpdate)
+            {
+                UpdateMovement(Time.deltaTime);
+            }
+            ExecuteExtension(ExtFunc.PostFixedUpdate);
         }
 
-        void UpdateMovement()
+        void UpdateMovement(float dt)
         {
             forward = transform.forward;
             side = transform.right;
@@ -234,7 +254,7 @@ namespace TheFirstPerson
             {
                 if (controller.height > crouchColliderHeight)
                 {
-                    controller.height = Mathf.MoveTowards(controller.height, crouchColliderHeight, Time.deltaTime * crouchTransitionSpeed);
+                    controller.height = Mathf.MoveTowards(controller.height, crouchColliderHeight, dt * crouchTransitionSpeed);
                 }
             }
             else
@@ -247,7 +267,7 @@ namespace TheFirstPerson
                     }
                     else
                     {
-                        controller.height = Mathf.MoveTowards(controller.height, standingHeight, Time.deltaTime * crouchTransitionSpeed);
+                        controller.height = Mathf.MoveTowards(controller.height, standingHeight, dt * crouchTransitionSpeed);
                     }
                 }
             }
@@ -321,11 +341,11 @@ namespace TheFirstPerson
                 {
                     if (moving || targetMove.magnitude < lastMoveH.magnitude)
                     {
-                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, Time.deltaTime * deceleration);
+                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, dt * deceleration);
                     }
                     else
                     {
-                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, Time.deltaTime * acceleration);
+                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, dt * acceleration);
                     }
                 }
                 else
@@ -335,7 +355,7 @@ namespace TheFirstPerson
                 var targetYVel = -baseGroundForce + (-maxGroundForce * (groundAngle / 90.0f));
                 if (lastMove.y < 0)
                 {
-                    yVel = Mathf.Lerp(lastMove.y, targetYVel, gravity * Time.deltaTime);
+                    yVel = Mathf.Lerp(lastMove.y, targetYVel, gravity * dt);
                 }
                 else
                 {
@@ -354,7 +374,7 @@ namespace TheFirstPerson
                 {
                     if (jumpPressed > 0)
                     {
-                        jumpPressed -= Time.deltaTime;
+                        jumpPressed -= dt;
                     }
                 }
             }
@@ -370,7 +390,7 @@ namespace TheFirstPerson
                 }
                 else
                 {
-                    currentMove = Vector3.MoveTowards(lastMoveH, targetMove, airResistance * Time.deltaTime);
+                    currentMove = Vector3.MoveTowards(lastMoveH, targetMove, airResistance * dt);
                 }
                 if (timeSinceGrounded <= 0 && !jumping)
                 {
@@ -391,28 +411,28 @@ namespace TheFirstPerson
                     }
                 }
 
-                yVel -= gravity * gravMult * Time.deltaTime;
+                yVel -= gravity * gravMult * dt;
                 if (yVel < -gravityCap)
                 {
                     yVel = -gravityCap;
                 }
 
-                timeSinceGrounded += Time.deltaTime;
+                timeSinceGrounded += dt;
                 if (jumpPressed > 0)
                 {
-                    jumpPressed -= Time.deltaTime;
+                    jumpPressed -= dt;
                 }
             }
 
-            ExecuteExtension("PreMove");
+            ExecuteExtension(ExtFunc.PreMove);
 
             currentMove += Vector3.up * yVel;
             moveDelta = transform.transform.position;
-            controller.Move(currentMove * Time.deltaTime);
+            controller.Move(currentMove * dt);
             moveDelta = transform.position - moveDelta;
-            lastMove = moveDelta * 1 / Time.deltaTime;
+            lastMove = moveDelta * 1 / dt;
             instantMomentumChange = false;
-            ExecuteExtension("PostMove");
+            ExecuteExtension(ExtFunc.PostMove);
         }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -588,6 +608,10 @@ namespace TheFirstPerson
             if (Input.GetButtonDown(jumpBtn))
             {
                 jumpPressed = coyoteTime;
+                if (moveInFixedUpdate)
+                {
+                    jumpPressed += Time.fixedDeltaTime;
+                }
             }
         }
 
@@ -650,7 +674,7 @@ namespace TheFirstPerson
             cameraOffset = newData.cameraOffset;
         }
 
-        void ExecuteExtension(string command)
+        void ExecuteExtension(ExtFunc command)
         {
             if (!extensionsEnabled)
             {
@@ -661,20 +685,26 @@ namespace TheFirstPerson
             {
                 switch (command)
                 {
-                    case "Start":
+                    case ExtFunc.Start:
                         extension.ExStart(ref data, controllerInfo);
                         break;
-                    case "PreUpdate":
+                    case ExtFunc.PreUpdate:
                         extension.ExPreUpdate(ref data, controllerInfo);
                         break;
-                    case "PostUpdate":
+                    case ExtFunc.PostUpdate:
                         extension.ExPostUpdate(ref data, controllerInfo);
                         break;
-                    case "FixedUpdate":
-                        extension.ExFixedUpdate(ref data, controllerInfo);
+                    case ExtFunc.PreFixedUpdate:
+                        extension.ExPreFixedUpdate(ref data, controllerInfo);
                         break;
-                    case "PreMove":
+                    case ExtFunc.PostFixedUpdate:
+                        extension.ExPostFixedUpdate(ref data, controllerInfo);
+                        break;
+                    case ExtFunc.PreMove:
                         extension.ExPreMove(ref data, controllerInfo);
+                        break;
+                    case ExtFunc.PostMove:
+                        extension.ExPostMove(ref data, controllerInfo);
                         break;
                     default:
                         break;
