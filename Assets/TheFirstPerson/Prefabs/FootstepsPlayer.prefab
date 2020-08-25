@@ -417,6 +417,7 @@ MonoBehaviour:
   customInputNames: 0
   airControl: 0.447
   airSprintEnabled: 1
+  normaliseMoveInput: 0
   jumpSpeed: 9
   variableHeight: 1
   coyoteTime: 0.1
@@ -442,7 +443,9 @@ MonoBehaviour:
   sprintMult: 2
   strafeMult: 0.8
   backwardMult: 0.5
-  sensitivity: 180
+  sensitivity: 10
+  mouseLockToggleEnabled: 1
+  startMouseLock: 1
   verticalLookLimit: 80
   cam: {fileID: 0}
   crouchToggleStyle: 0
@@ -455,6 +458,7 @@ MonoBehaviour:
   jumpBtnCustom: Jump
   crouchBtnCustom: Fire1
   runBtnCustom: Fire3
+  unlockMouseBtnCustom: Cancel
   xInNameCustom: Horizontal
   yInNameCustom: Vertical
   xMouseNameCustom: Mouse X

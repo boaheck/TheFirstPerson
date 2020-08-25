@@ -25,6 +25,8 @@ namespace TheFirstPerson
         [Range(0f, 1f)]
         public float airControl = 0.5f;
         public bool airSprintEnabled = true;
+        [Tooltip("This will put a limit of 1 on the magnitude of the horizontal movement input")]
+        public bool normaliseMoveInput = false;
 
         [Header("Jump Settings")]
         [ConditionalHide("jumpEnabled", true)]
@@ -73,7 +75,7 @@ namespace TheFirstPerson
         public float backwardMult = 0.6f;
 
         [Header("Mouse Look Settings")]
-        public float sensitivity = 180;
+        public float sensitivity = 10;
         [Tooltip("In editor this may not work correctly but it will in build")]
         public bool mouseLockToggleEnabled = true;
         public bool startMouseLock = true;
@@ -536,11 +538,11 @@ namespace TheFirstPerson
                 float horizontalLook = transform.eulerAngles.y;
                 float verticalLook = cam.localEulerAngles.x;
 
-                horizontalLook += xMouse * sensitivity * Time.deltaTime;
+                horizontalLook += xMouse * sensitivity;
 
                 if (verticalLookEnabled)
                 {
-                    verticalLook -= yMouse * sensitivity * Time.deltaTime;
+                    verticalLook -= yMouse * sensitivity;
                     if (verticalLook > verticalLookLimit && verticalLook < 180)
                     {
                         verticalLook = verticalLookLimit;
@@ -561,6 +563,12 @@ namespace TheFirstPerson
         {
             xIn = Input.GetAxisRaw(xInName);
             yIn = Input.GetAxisRaw(yInName);
+            if (normaliseMoveInput)
+            {
+                Vector2 normalised = new Vector2(xIn, yIn).normalized;
+                xIn = normalised.x;
+                yIn = normalised.y;
+            }
             xMouse = Input.GetAxis(xMouseName);
             yMouse = Input.GetAxis(yMouseName);
             moving = Mathf.Abs(xIn) > 0.1 || Mathf.Abs(yIn) > 0.1;
