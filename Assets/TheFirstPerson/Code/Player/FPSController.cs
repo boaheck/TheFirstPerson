@@ -12,7 +12,8 @@ namespace TheFirstPerson
         PreFixedUpdate,
         PostFixedUpdate,
         PreMove,
-        PostMove
+        PostMove,
+        PostInput
     }
 
     [RequireComponent(typeof(CharacterController))]
@@ -42,17 +43,26 @@ namespace TheFirstPerson
 
         [Header("Jump Settings")]
         [ConditionalHide("jumpEnabled", true)]
-        public float jumpSpeed = 9;
+        public bool definedByHeight = false;
         [ConditionalHide("jumpEnabled", true)]
         public bool variableHeight = true;
         [ConditionalHide("jumpEnabled", true)]
         public float coyoteTime = 0.1f;
         [ConditionalHide("jumpEnabled", true)]
         public float bunnyhopTolerance = 0.1f;
-        [ConditionalHide(new string[] { "jumpEnabled", "variableHeight" }, true, false)]
+        [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, new bool[] { false, true }, true, false)]
+        public float jumpSpeed = 9;
+        [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, new bool[] { false, true }, true, false)]
         public float jumpGravityMult = 0.6f;
-        [ConditionalHide(new string[] { "jumpEnabled", "variableHeight" }, true, false)]
+        [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, true, false)]
+        public float maxJumpHeight = 4;
+        [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, true, false)]
+        public float maxJumpTime = 1;
+        [ConditionalHide(new string[] { "jumpEnabled", "variableHeight", "definedByHeight" }, new bool[]{ false, false, true }, true, false)]
         public float postJumpGravityMult = 3;
+        [ConditionalHide(new string[] { "jumpEnabled", "variableHeight", "definedByHeight" }, new bool[] { false, false, false }, true, false)]
+        public float minJumpHeight = 1;
+        float minJumpTime = 0.25f;
         [ConditionalHide(new string[] { "jumpEnabled", "slopeSlideEnabled" }, true, false)]
         public bool jumpWhileSliding = false;
         [ConditionalHide(new string[] { "jumpEnabled", "slopeSlideEnabled", "jumpWhileSliding" }, true, false)]
@@ -146,7 +156,9 @@ namespace TheFirstPerson
         float timeSinceGrounded;
         float yVel;
         float gravMult = 1;
-
+        float originalMaxJH;
+        float originalMinJH;
+        float originalJT;
 
         //General movement
         Vector3 lastMove;
@@ -209,6 +221,11 @@ namespace TheFirstPerson
                 yMouseName = yMouseNameCustom;
             }
 
+            if (definedByHeight)
+            {
+                RecalculateJumpValues();
+            }
+
             mouseLocked = startMouseLock;
 
             controllerInfo = GetInfo();
@@ -217,9 +234,16 @@ namespace TheFirstPerson
 
         void Update()
         {
+            if(definedByHeight && (originalJT != maxJumpTime || originalMaxJH != maxJumpHeight || originalMinJH != minJumpHeight))
+            {
+                RecalculateJumpValues();
+            }
+
+
             ExecuteExtension(ExtFunc.PreUpdate);
             UpdateInput();
             UpdateMouseLock();
+            ExecuteExtension(ExtFunc.PostInput);
             if (mouseLocked)
             {
                 MouseLook();
@@ -470,10 +494,7 @@ namespace TheFirstPerson
 
                 if (jumpHeld && jumping)
                 {
-                    if (variableHeight)
-                    {
-                        gravMult = jumpGravityMult;
-                    }
+                    gravMult = jumpGravityMult;
                     if (yVel < 0)
                     {
                         jumping = false;
@@ -585,7 +606,7 @@ namespace TheFirstPerson
             yIn = Input.GetAxisRaw(yInName);
             if (normaliseMoveInput)
             {
-                Vector2 normalised = new Vector2(xIn, yIn).normalized;
+                Vector2 normalised = Vector2.ClampMagnitude(new Vector2(xIn, yIn), 1.0f);
                 xIn = normalised.x;
                 yIn = normalised.y;
             }
@@ -613,6 +634,14 @@ namespace TheFirstPerson
                     jumpPressed += Time.fixedDeltaTime;
                 }
             }
+        }
+
+        void RecalculateJumpValues()
+        {
+            jumpGravityMult = ((2 * maxJumpHeight) / Mathf.Pow(maxJumpTime, 2)) / gravity;
+            jumpSpeed = (2 * maxJumpHeight) / maxJumpTime;
+            minJumpTime = (2 * minJumpHeight) / jumpSpeed;
+            postJumpGravityMult = ((2 * minJumpHeight) / Mathf.Pow(minJumpTime, 2)) / gravity;
         }
 
         TFPData GetData()
@@ -705,6 +734,9 @@ namespace TheFirstPerson
                         break;
                     case ExtFunc.PostMove:
                         extension.ExPostMove(ref data, controllerInfo);
+                        break;
+                    case ExtFunc.PostInput:
+                        extension.ExPostInput(ref data, controllerInfo);
                         break;
                     default:
                         break;

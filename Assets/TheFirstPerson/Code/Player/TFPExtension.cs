@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -45,5 +46,8 @@ namespace TheFirstPerson
 
         //Executes at the end of the move function at this point all movement for the frame has been handled
         public virtual void ExPostMove(ref TFPData data, TFPInfo info) { }
+
+        //executes after input is retrieved, allows you to override input behaviour, useful for things like disabling jumping or running
+        public virtual void ExPostInput(ref TFPData data, TFPInfo info) { }
     }
 }
