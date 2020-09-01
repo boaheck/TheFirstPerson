@@ -35,9 +35,10 @@ namespace TheFirstPerson
         public bool customCameraTransform = false;
         public bool customInputNames = false;
         [Range(0f, 1f)]
+        [Tooltip("1 is full air control exactly how you control on the ground. 0 is none, you will have no control in the air.")]
         public float airControl = 0.5f;
         public bool airSprintEnabled = true;
-        [Tooltip("This will put a limit of 1 on the magnitude of the horizontal movement input")]
+        [Tooltip("This will put a limit of 1 on the magnitude of the horizontal movement input.")]
         public bool normaliseMoveInput = false;
         public bool moveInFixedUpdate = false;
 
@@ -47,61 +48,88 @@ namespace TheFirstPerson
         [ConditionalHide("jumpEnabled", true)]
         public bool variableHeight = true;
         [ConditionalHide("jumpEnabled", true)]
+        [Tooltip("Time in seconds after you leave an edge that you can still jump.")]
         public float coyoteTime = 0.1f;
         [ConditionalHide("jumpEnabled", true)]
+        [Tooltip("Time in seconds before you hit the ground where you can press jump to jump when you land.")]
         public float bunnyhopTolerance = 0.1f;
         [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, new bool[] { false, true }, true, false)]
+        [Tooltip("Initial in units per second upward velocity of your jump.")]
         public float jumpSpeed = 9;
         [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, new bool[] { false, true }, true, false)]
+        [Tooltip("Gravity that is applied on the upward section of your jump. This multiplies the base gravity variable.")]
         public float jumpGravityMult = 0.6f;
         [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, true, false)]
+        [Tooltip("Maximum height in units that your jump will reach.")]
         public float maxJumpHeight = 4;
         [ConditionalHide(new string[] { "jumpEnabled", "definedByHeight" }, true, false)]
+        [Tooltip("Maximum length of time in seconds your jump will last.")]
         public float maxJumpTime = 1;
         [ConditionalHide(new string[] { "jumpEnabled", "variableHeight", "definedByHeight" }, new bool[]{ false, false, true }, true, false)]
+        [Tooltip("Gravity that is applied while you are traveling upwards after you have let go of the jump button. This multiplies the base gravity variable.")]
         public float postJumpGravityMult = 3;
         [ConditionalHide(new string[] { "jumpEnabled", "variableHeight", "definedByHeight" }, new bool[] { false, false, false }, true, false)]
+        [Tooltip("Maximum height in units that your jump will reach if you let go of the jump button early.")]
         public float minJumpHeight = 1;
-        float minJumpTime = 0.25f;
         [ConditionalHide(new string[] { "jumpEnabled", "slopeSlideEnabled" }, true, false)]
         public bool jumpWhileSliding = false;
         [ConditionalHide(new string[] { "jumpEnabled", "slopeSlideEnabled", "jumpWhileSliding" }, true, false)]
+        [Tooltip("Force in units per second to be applied to the controller away from the surface of a slope too steep to traverse.")]
         public float slopeJumpKickbackSpeed = 10;
 
         [Header("Gravity Settings")]
+        [Tooltip("Gravity variable this is the change in units per second that will be applied to your y velocity.")]
         public float gravity = 15;
+        [Tooltip("Minimum force in units per second pushing you downwards while grounded. This applies on flat ground.")]
         public float baseGroundForce = 3;
+        [Tooltip("Maximum force in units per second pushing you downwards while grounded. This applies on steep slopes.")]
         public float maxGroundForce = 30;
+        [Tooltip("Maximum downwards velocity in units per second.")]
         public float gravityCap = 50;
+        [Tooltip("Base downward velocity applied after walking off an edge in units per second.")]
         public float baseFallVelocity = 5;
 
         [Header("Air Control Settings")]
+        [Tooltip("Speed in units per second that your horizontal velocity returns to 0 in air without any input.")]
         public float airResistance = 4;
+        [Tooltip("Speed in units per second that you move forward in the air.")]
         public float airMoveSpeed = 6;
+        [Tooltip("Speed that you strafe in the air relative to Air Move Speed.")]
         public float airStrafeMult = 0.8f;
+        [Tooltip("Speed that you move backwards in the air relative to Air Move Speed.")]
         public float airBackwardMult = 0.6f;
         [ConditionalHide("airSprintEnabled", true)]
+        [Tooltip("Speed that you sprint in the air relative to Air Move Speed.")]
         public float airSprintMult = 2;
 
         [Header("Speed Settings")]
+        [Tooltip("Base forward speed in units per second.")]
         public float moveSpeed = 5;
         [ConditionalHide("slopeSlideEnabled", true)]
+        [Tooltip("Horizontal speed while sliding in units per second.")]
         public float slopeSlideSpeed = 10;
         [ConditionalHide("momentumEnabled", true)]
+        [Tooltip("Horizontal acceleration in units per second towards target horizontal speed if it is greater than current speed.")]
         public float acceleration = 50;
         [ConditionalHide("momentumEnabled", true)]
+        [Tooltip("Horizontal deceleration in units per second towards target horizontal speed if it is less than current speed.")]
         public float deceleration = 40;
         [ConditionalHide("sprintEnabled", true)]
+        [Tooltip("Speed that you sprint relative to Move Speed.")]
         public float sprintMult = 2;
+        [Tooltip("Speed that you strafe relative to Move Speed.")]
         public float strafeMult = 0.8f;
+        [Tooltip("Speed that you move backwards relative to Move Speed.")]
         public float backwardMult = 0.6f;
 
         [Header("Mouse Look Settings")]
+        [Tooltip("Mouse sensitivity.")]
         public float sensitivity = 10;
         [Tooltip("In editor this may not work correctly but it will in build")]
         public bool mouseLockToggleEnabled = true;
         public bool startMouseLock = true;
         [ConditionalHide("verticalLookEnabled", true)]
+        [Tooltip("Maximum upward or downward angle of the mouselook camera.")]
         public float verticalLookLimit = 80;
         [ConditionalHide("customCameraTransform", true)]
         public Transform cam;
@@ -110,10 +138,13 @@ namespace TheFirstPerson
         [ConditionalHide("crouchEnabled", true)]
         public bool crouchToggleStyle = false;
         [ConditionalHide("crouchEnabled", true)]
+        [Tooltip("Height of the crouch collider.")]
         public float crouchColliderHeight = 0.6f;
         [ConditionalHide("crouchEnabled", true)]
+        [Tooltip("Horizontal speed when crouched relative to Move Speed.")]
         public float crouchMult = 0.5f;
         [ConditionalHide("crouchEnabled", true)]
+        [Tooltip("Speed of transition to and from crouch in units per second.")]
         public float crouchTransitionSpeed = 6;
         [ConditionalHide("crouchEnabled", true)]
         public LayerMask crouchHeadHitLayerMask;
@@ -159,6 +190,7 @@ namespace TheFirstPerson
         float originalMaxJH;
         float originalMinJH;
         float originalJT;
+        float minJumpTime;
 
         //General movement
         Vector3 lastMove;
