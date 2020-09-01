@@ -710,17 +710,18 @@ namespace TheFirstPerson
 
         TFPInfo GetInfo()
         {
-            return new TFPInfo(controller, cam,
-                extensionsEnabled, slopeSlideEnabled, sprintEnabled, momentumEnabled, crouchEnabled, jumpEnabled,
-                verticalLookEnabled, customInputNames, airControl, airSprintEnabled,
-                jumpSpeed, variableHeight, coyoteTime, bunnyhopTolerance, jumpGravityMult, postJumpGravityMult,
-                jumpWhileSliding, slopeJumpKickbackSpeed,
-                gravity, baseGroundForce, maxGroundForce, gravityCap, baseFallVelocity,
-                airResistance, airMoveSpeed, airStrafeMult, airBackwardMult, airSprintMult,
-                moveSpeed, slopeSlideSpeed, acceleration, deceleration, sprintMult, strafeMult, backwardMult,
-                sensitivity, verticalLookLimit,
+            return new TFPInfo(controller, cam, extensionsEnabled, slopeSlideEnabled,
+                sprintEnabled, momentumEnabled, crouchEnabled, jumpEnabled, verticalLookEnabled,
+                customInputNames, airControl, airSprintEnabled, jumpSpeed, variableHeight, coyoteTime,
+                bunnyhopTolerance, jumpGravityMult, postJumpGravityMult, jumpWhileSliding, slopeJumpKickbackSpeed,
+                gravity, baseGroundForce, maxGroundForce, gravityCap, baseFallVelocity, airResistance,
+                airMoveSpeed, airStrafeMult, airBackwardMult, airSprintMult, moveSpeed, slopeSlideSpeed,
+                acceleration, deceleration, sprintMult, strafeMult, backwardMult, sensitivity, verticalLookLimit,
                 crouchToggleStyle, crouchColliderHeight, crouchMult, crouchTransitionSpeed, crouchHeadHitLayerMask,
-                jumpBtn, crouchBtn, runBtn, unlockMouseBtn, xInName, yInName, xMouseName, yMouseName);
+                jumpBtn, crouchBtn, runBtn, unlockMouseBtn, xInName, yInName, xMouseName, yMouseName,
+                mouseLookEnabled, customCameraTransform, normaliseMoveInput, moveInFixedUpdate, definedByHeight,
+                maxJumpHeight, maxJumpTime, minJumpHeight, sprintToggleStyle, sprintByDefault, mouseLockToggleEnabled,
+                startMouseLock);
         }
 
         void SetData(TFPData newData)

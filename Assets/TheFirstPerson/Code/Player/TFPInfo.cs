@@ -56,20 +56,32 @@ namespace TheFirstPerson
         public string yInName;
         public string xMouseName;
         public string yMouseName;
+        public bool mouseLookEnabled;
+        public bool customCameraTransform;
+        public bool normaliseMoveInput;
+        public bool moveInFixedUpdate;
+        public bool definedByHeight;
+        public float maxJumpHeight;
+        public float maxJumpTime;
+        public float minJumpHeight;
+        public bool sprintToggleStyle;
+        public bool sprintByDefault;
+        public bool mouseLockToggleEnabled;
+        public bool startMouseLock;
 
-        public TFPInfo(CharacterController controller, Transform cam,
-            bool extensionsEnabled, bool slopeSlideEnabled, bool sprintEnabled, bool momentumEnabled, bool crouchEnabled, bool jumpEnabled,
-            bool verticalLookEnabled, bool customInputNames, float airControl, bool airSprintEnabled,
-            float jumpSpeed, bool variableHeight, float coyoteTime, float bunnyhopTolerance, float jumpGravityMult, float postJumpGravityMult,
-            bool jumpWhileSliding, float slopeJumpKickbackSpeed,
-            float gravity, float baseGroundForce, float maxGroundForce, float gravityCap, float baseFallVelocity,
-            float airResistance, float airMoveSpeed, float airStrafeMult, float airBackwardMult, float airSprintMult,
-            float moveSpeed, float slopeSlideSpeed, float acceleration, float deceleration, float sprintMult, float strafeMult, float backwardMult,
-            float sensitivity, float verticalLookLimit,
-            bool crouchToggleStyle, float crouchColliderHeight, float crouchMult, float crouchTransitionSpeed, LayerMask crouchHeadHitLayerMask,
-            string jumpBtn, string crouchBtn, string runBtn, string unlockMouseBtn, string xInName, string yInName, string xMouseName, string yMouseName)
+        public TFPInfo(CharacterController controller, Transform cam, bool extensionsEnabled, bool slopeSlideEnabled,
+            bool sprintEnabled, bool momentumEnabled, bool crouchEnabled, bool jumpEnabled, bool verticalLookEnabled,
+            bool customInputNames, float airControl, bool airSprintEnabled, float jumpSpeed, bool variableHeight, float coyoteTime,
+            float bunnyhopTolerance, float jumpGravityMult, float postJumpGravityMult, bool jumpWhileSliding, float slopeJumpKickbackSpeed,
+            float gravity, float baseGroundForce, float maxGroundForce, float gravityCap, float baseFallVelocity, float airResistance,
+            float airMoveSpeed, float airStrafeMult, float airBackwardMult, float airSprintMult, float moveSpeed, float slopeSlideSpeed,
+            float acceleration, float deceleration, float sprintMult, float strafeMult, float backwardMult, float sensitivity, float verticalLookLimit,
+            bool crouchToggleStyle, float crouchColliderHeight, float crouchMult, float crouchTransitionSpeed, LayerMask crouchHeadHitLayerMask, string
+            jumpBtn, string crouchBtn, string runBtn, string unlockMouseBtn, string xInName, string yInName, string xMouseName, string yMouseName,
+            bool mouseLookEnabled, bool customCameraTransform, bool normaliseMoveInput, bool moveInFixedUpdate, bool definedByHeight,
+            float maxJumpHeight, float maxJumpTime, float minJumpHeight, bool sprintToggleStyle, bool sprintByDefault, bool mouseLockToggleEnabled,
+            bool startMouseLock)
         {
-
             this.controller = controller;
             this.cam = cam;
             this.extensionsEnabled = extensionsEnabled;
@@ -122,6 +134,18 @@ namespace TheFirstPerson
             this.yInName = yInName;
             this.xMouseName = xMouseName;
             this.yMouseName = yMouseName;
+            this.mouseLookEnabled = mouseLookEnabled;
+            this.customCameraTransform = customCameraTransform;
+            this.normaliseMoveInput = normaliseMoveInput;
+            this.moveInFixedUpdate = moveInFixedUpdate;
+            this.definedByHeight = definedByHeight;
+            this.maxJumpHeight = maxJumpHeight;
+            this.maxJumpTime = maxJumpTime;
+            this.minJumpHeight = minJumpHeight;
+            this.sprintToggleStyle = sprintToggleStyle;
+            this.sprintByDefault = sprintByDefault;
+            this.mouseLockToggleEnabled = mouseLockToggleEnabled;
+            this.startMouseLock = startMouseLock;
         }
     }
 }
