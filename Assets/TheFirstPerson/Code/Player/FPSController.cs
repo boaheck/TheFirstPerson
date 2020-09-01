@@ -115,6 +115,10 @@ namespace TheFirstPerson
         [Tooltip("Horizontal deceleration in units per second towards target horizontal speed if it is less than current speed.")]
         public float deceleration = 40;
         [ConditionalHide("sprintEnabled", true)]
+        public bool sprintToggleStyle = false;
+        [ConditionalHide("sprintEnabled", true)]
+        public bool sprintByDefault = false;
+        [ConditionalHide("sprintEnabled", true)]
         [Tooltip("Speed that you sprint relative to Move Speed.")]
         public float sprintMult = 2;
         [Tooltip("Speed that you strafe relative to Move Speed.")]
@@ -251,6 +255,11 @@ namespace TheFirstPerson
                 yInName = yInNameCustom;
                 xMouseName = xMouseNameCustom;
                 yMouseName = yMouseNameCustom;
+            }
+
+            if(sprintByDefault)
+            {
+                running = true;
             }
 
             if (definedByHeight)
@@ -656,7 +665,21 @@ namespace TheFirstPerson
             {
                 crouching = Input.GetButton(crouchBtn);
             }
-            running = Input.GetButton(runBtn);
+            if (sprintToggleStyle)
+            {
+                if (Input.GetButtonDown(runBtn))
+                {
+                    running = !running;
+                }
+            }
+            else if (sprintByDefault)
+            {
+                running = !Input.GetButton(runBtn);
+            }
+            else
+            {
+                running = Input.GetButton(runBtn);
+            }
             jumpHeld = Input.GetButton(jumpBtn);
             if (Input.GetButtonDown(jumpBtn))
             {
