@@ -30,7 +30,10 @@ namespace TheFirstPerson
         public bool momentumEnabled = true;
         public bool crouchEnabled = true;
         public bool jumpEnabled = true;
+        public bool thirdPersonMode = false; 
+        [ConditionalHide("thirdPersonMode", true, true)]
         public bool mouseLookEnabled = true;
+        [ConditionalHide("thirdPersonMode", true, true)]
         public bool verticalLookEnabled = true;
         public bool customCameraTransform = false;
         public bool customInputNames = false;
@@ -41,6 +44,8 @@ namespace TheFirstPerson
         [Tooltip("This will put a limit of 1 on the magnitude of the horizontal movement input.")]
         public bool normaliseMoveInput = false;
         public bool moveInFixedUpdate = false;
+        [ConditionalHide(new string[] { "customCameraTransform" , "thirdPersonMode"}, false, false, true)]
+        public Transform cam;
 
         [Header("Jump Settings")]
         [ConditionalHide("jumpEnabled", true)]
@@ -135,14 +140,12 @@ namespace TheFirstPerson
         [ConditionalHide("verticalLookEnabled", true)]
         [Tooltip("Maximum upward or downward angle of the mouselook camera.")]
         public float verticalLookLimit = 80;
-        [ConditionalHide("customCameraTransform", true)]
-        public Transform cam;
 
         [Header("CrouchSettings")]
         [ConditionalHide("crouchEnabled", true)]
         public bool crouchToggleStyle = false;
         [ConditionalHide("crouchEnabled", true)]
-        [Tooltip("Height of the crouch collider.")]
+        [Tooltip("Height of the crouch collider. Must be least twice the radius of the controller.")]
         public float crouchColliderHeight = 0.6f;
         [ConditionalHide("crouchEnabled", true)]
         [Tooltip("Horizontal speed when crouched relative to Move Speed.")]
@@ -152,6 +155,14 @@ namespace TheFirstPerson
         public float crouchTransitionSpeed = 6;
         [ConditionalHide("crouchEnabled", true)]
         public LayerMask crouchHeadHitLayerMask;
+
+        [Header("Third Person Options")]
+        [ConditionalHide("thirdPersonMode")]
+        [Tooltip("Speed of character turning in degrees per second. Set to 0 for instant turning")]
+        public float turnSpeed = 360f;
+        [ConditionalHide(new string[]{ "thirdPersonMode", "sprintEnabled" },true,false)]
+        [Tooltip("Speed that you turn when sprinting relative to Turn Speed.")]
+        public float sprintTurnMult = 2.0f;
 
         [Header("Input Names")]
         [ConditionalHide("customInputNames", true)]
@@ -220,6 +231,9 @@ namespace TheFirstPerson
         float cameraOffset;
         RaycastHit headHit;
 
+        //third person
+        float currentTurnMult;
+
         //Input Name Defaults (assuming default unity axes are set up)
         string jumpBtn = "Jump";
         string crouchBtn = "Fire1";
@@ -236,7 +250,7 @@ namespace TheFirstPerson
         {
             controller = GetComponent<CharacterController>();
             //get the transform of a child with a camera component
-            if (!customCameraTransform)
+            if (!customCameraTransform && !thirdPersonMode)
             {
                 cam = transform.GetComponentInChildren<Camera>().transform;
             }
@@ -283,11 +297,19 @@ namespace TheFirstPerson
 
             ExecuteExtension(ExtFunc.PreUpdate);
             UpdateInput();
+            
             UpdateMouseLock();
             ExecuteExtension(ExtFunc.PostInput);
-            if (mouseLocked)
+            if (thirdPersonMode)
             {
-                MouseLook();
+                ThirdPersonSteering();
+            }
+            else
+            {
+                if (mouseLocked)
+                {
+                    MouseLook();
+                }
             }
             if (!moveInFixedUpdate)
             {
@@ -340,7 +362,10 @@ namespace TheFirstPerson
             setCurrentMoveVars();
             Vector3 targetMove = GetHorizontalMove();
             controller.center = new Vector3(0, controller.height / 2.0f, 0);
-            cam.localPosition = new Vector3(cam.localPosition.x, controller.height - cameraOffset, cam.localPosition.z);
+            if (!mouseLookEnabled && !thirdPersonMode)
+            {
+                cam.localPosition = new Vector3(cam.localPosition.x, controller.height - cameraOffset, cam.localPosition.z);
+            }
 
             if (grounded && groundAngle >= controller.slopeLimit && slopeSlideEnabled)
             {
@@ -509,6 +534,7 @@ namespace TheFirstPerson
 
         void setCurrentMoveVars()
         {
+            currentTurnMult = 1.0f;
             if (grounded)
             {
                 currentMoveSpeed = moveSpeed;
@@ -520,6 +546,10 @@ namespace TheFirstPerson
                 }
                 else if (running && sprintEnabled)
                 {
+                    if (thirdPersonMode)
+                    {
+                        currentTurnMult *= sprintTurnMult;
+                    }
                     currentMoveSpeed *= sprintMult;
                 }
             }
@@ -530,6 +560,10 @@ namespace TheFirstPerson
                 currentBackwardMult = airBackwardMult;
                 if (running && airSprintEnabled && !(crouching && crouchEnabled))
                 {
+                    if (thirdPersonMode)
+                    {
+                        currentTurnMult *= sprintTurnMult;
+                    }
                     currentMoveSpeed *= airSprintMult;
                 }
 
@@ -569,12 +603,19 @@ namespace TheFirstPerson
             Vector3 targetMove = Vector3.zero;
             if (moving)
             {
-                targetMove += forward * currentMoveSpeed * yIn;
-                if (yIn < 0)
+                if (thirdPersonMode)
                 {
-                    targetMove *= currentBackwardMult;
+                    targetMove += forward * currentMoveSpeed * new Vector2(xIn, yIn).magnitude ;
                 }
-                targetMove += side * currentMoveSpeed * xIn * currentStrafeMult;
+                else
+                {
+                    targetMove += forward * currentMoveSpeed * yIn;
+                    if (yIn < 0)
+                    {
+                        targetMove *= currentBackwardMult;
+                    }
+                    targetMove += side * currentMoveSpeed * xIn * currentStrafeMult;
+                }
             }
             return targetMove;
         }
@@ -638,6 +679,25 @@ namespace TheFirstPerson
                 }
 
                 transform.localEulerAngles = new Vector3(0, horizontalLook, 0);
+            }
+        }
+
+        void ThirdPersonSteering()
+        {
+            
+            Vector3 inputDir = new Vector3(xIn, 0, yIn);
+            if (inputDir.magnitude > 0)
+            {
+                float targetAngle = Mathf.Atan2(xIn, yIn) * Mathf.Rad2Deg + cam.eulerAngles.y;
+                if (turnSpeed != 0)
+                {
+                    float finalAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.y, targetAngle, turnSpeed * currentTurnMult * Time.deltaTime);
+                    transform.eulerAngles = new Vector3(0, finalAngle, 0);
+                }
+                else
+                {
+                    transform.eulerAngles = new Vector3(0, targetAngle, 0);
+                }
             }
         }
 

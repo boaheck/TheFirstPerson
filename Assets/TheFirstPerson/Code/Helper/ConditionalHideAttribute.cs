@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 
 //Original version of the ConditionalHideAttribute created by Brecht Lecluyse (www.brechtos.com)
-//Modified by: -
+//Modified by: - BreoganHackett
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property |
     AttributeTargets.Class | AttributeTargets.Struct, Inherited = true)]
@@ -63,6 +63,14 @@ public class ConditionalHideAttribute : PropertyAttribute
         this.ConditionalSourceFields = conditionalSourceFields;
         this.HideInInspector = hideInInspector;
         this.Inverse = inverse;
+    }
+
+    public ConditionalHideAttribute(string[] conditionalSourceFields, bool hideInInspector, bool inverse, bool useOr)
+    {
+        this.ConditionalSourceFields = conditionalSourceFields;
+        this.HideInInspector = hideInInspector;
+        this.Inverse = inverse;
+        this.UseOrLogic = useOr;
     }
 
 }
