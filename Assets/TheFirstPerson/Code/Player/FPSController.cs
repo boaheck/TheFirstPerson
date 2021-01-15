@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TheFirstPerson.Helper;
 
 namespace TheFirstPerson
 {
@@ -362,7 +363,7 @@ namespace TheFirstPerson
             setCurrentMoveVars();
             Vector3 targetMove = GetHorizontalMove();
             controller.center = new Vector3(0, controller.height / 2.0f, 0);
-            if (!mouseLookEnabled && !thirdPersonMode)
+            if (mouseLookEnabled && !thirdPersonMode)
             {
                 cam.localPosition = new Vector3(cam.localPosition.x, controller.height - cameraOffset, cam.localPosition.z);
             }
@@ -757,6 +758,19 @@ namespace TheFirstPerson
             jumpSpeed = (2 * maxJumpHeight) / maxJumpTime;
             minJumpTime = (2 * minJumpHeight) / jumpSpeed;
             postJumpGravityMult = ((2 * minJumpHeight) / Mathf.Pow(minJumpTime, 2)) / gravity;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (controller == null)
+            {
+                controller = gameObject.GetComponent<CharacterController>();
+            }
+            Vector3 pos = transform.position + controller.center;
+            GizmoUtilities.DrawWireCapsule(pos, Quaternion.identity, controller.radius + controller.skinWidth, controller.height + (2*controller.skinWidth), Color.cyan);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position + new Vector3(-controller.radius, controller.stepOffset,0), transform.position + new Vector3(controller.radius, controller.stepOffset, 0));
+            Gizmos.DrawLine(transform.position + new Vector3(0, controller.stepOffset, -controller.radius), transform.position + new Vector3(0, controller.stepOffset, controller.radius));
         }
 
         TFPData GetData()

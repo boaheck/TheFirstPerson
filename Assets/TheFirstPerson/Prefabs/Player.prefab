@@ -100,7 +100,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6268786117941654322
 Transform:
   m_ObjectHideFlags: 0
@@ -130,8 +130,8 @@ CharacterController:
   m_Height: 2
   m_Radius: 0.3
   m_SlopeLimit: 44
-  m_StepOffset: 0.4
-  m_SkinWidth: 0.08
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.04
   m_MinMoveDistance: 0
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &6268786117941654323
@@ -152,6 +152,7 @@ MonoBehaviour:
   momentumEnabled: 1
   crouchEnabled: 1
   jumpEnabled: 1
+  thirdPersonMode: 0
   mouseLookEnabled: 1
   verticalLookEnabled: 1
   customCameraTransform: 0
@@ -159,12 +160,18 @@ MonoBehaviour:
   airControl: 0.447
   airSprintEnabled: 1
   normaliseMoveInput: 0
-  jumpSpeed: 9
+  moveInFixedUpdate: 0
+  cam: {fileID: 0}
+  definedByHeight: 0
   variableHeight: 1
   coyoteTime: 0.1
   bunnyhopTolerance: 0.1
+  jumpSpeed: 9
   jumpGravityMult: 0.6
+  maxJumpHeight: 4
+  maxJumpTime: 1
   postJumpGravityMult: 3
+  minJumpHeight: 1
   jumpWhileSliding: 0
   slopeJumpKickbackSpeed: 10
   gravity: 15
@@ -181,6 +188,8 @@ MonoBehaviour:
   slopeSlideSpeed: 10
   acceleration: 50
   deceleration: 40
+  sprintToggleStyle: 0
+  sprintByDefault: 0
   sprintMult: 2
   strafeMult: 0.8
   backwardMult: 0.5
@@ -188,7 +197,6 @@ MonoBehaviour:
   mouseLockToggleEnabled: 1
   startMouseLock: 1
   verticalLookLimit: 80
-  cam: {fileID: 0}
   crouchToggleStyle: 0
   crouchColliderHeight: 0.6
   crouchMult: 0.5
@@ -196,6 +204,8 @@ MonoBehaviour:
   crouchHeadHitLayerMask:
     serializedVersion: 2
     m_Bits: 51
+  turnSpeed: 360
+  sprintTurnMult: 2
   jumpBtnCustom: Jump
   crouchBtnCustom: Fire1
   runBtnCustom: Fire3
