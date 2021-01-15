@@ -8983,6 +8983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 346263cb502d6294f8780863a6301738, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movementEnabled: 1
   extensionsEnabled: 0
   slopeSlideEnabled: 1
   sprintEnabled: 1
@@ -9022,7 +9023,7 @@ MonoBehaviour:
   airBackwardMult: 0.6
   airSprintMult: 2
   moveSpeed: 5
-  slopeSlideSpeed: 10
+  slopeSlideSpeed: 20
   acceleration: 50
   deceleration: 40
   sprintToggleStyle: 0
@@ -9041,8 +9042,11 @@ MonoBehaviour:
   crouchHeadHitLayerMask:
     serializedVersion: 2
     m_Bits: 51
+  walkBackwards: 1
   turnSpeed: 360
   sprintTurnMult: 2
+  cameraAlignSpeed: 360
+  customInputSystem: {fileID: 0}
   jumpBtnCustom: Jump
   crouchBtnCustom: Fire1
   runBtnCustom: Fire3

@@ -4,7 +4,7 @@ namespace TheFirstPerson
 {
     public struct TFPData
     {
-
+        public bool movementEnabled;
         public bool moving;
         public bool jumpHeld;
         public bool crouching;
@@ -37,13 +37,13 @@ namespace TheFirstPerson
         public float standingHeight;
         public float cameraOffset;
 
-        public TFPData(bool moving, bool jumpHeld, bool crouching, bool running, bool mouseLocked, bool mouseLookEnabled, float jumpPressed, float xIn, float yIn, float xMouse, float yMouse,
+        public TFPData(bool movementEnabled,bool moving, bool jumpHeld, bool crouching, bool running, bool mouseLocked, bool mouseLookEnabled, float jumpPressed, float xIn, float yIn, float xMouse, float yMouse,
             bool jumping, bool grounded, float timeSinceGrounded, float yVel, bool slide,
             float gravMult, float currentStrafeMult, float currentBackwardMult, float currentMoveSpeed, float groundAngle,
             Vector3 lastMove, Vector3 currentMove, Vector3 forward, Vector3 side, Vector3 moveDelta, Vector3 hitNormal, Vector3 hitPoint, Vector3 slideMove,
             float standingHeight, float cameraOffset)
         {
-
+            this.movementEnabled = movementEnabled;
             this.moving = moving;
             this.jumpHeld = jumpHeld;
             this.crouching = crouching;
