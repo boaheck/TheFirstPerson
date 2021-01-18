@@ -163,6 +163,9 @@ namespace TheFirstPerson
         [ConditionalHide("thirdPersonMode")]
         [Tooltip("Is it possible to walk backwards or should the player turn")]
         public bool walkBackwards = false;
+        [ConditionalHide(new string[] { "thirdPersonMode", "walkBackwards" }, true, false)]
+        [Tooltip("Is it possible to strafe or should the player turn")]
+        public bool strafe = false;
         [ConditionalHide("thirdPersonMode")]
         [Tooltip("Speed of character turning in degrees per second. Set to 0 for instant turning")]
         public float turnSpeed = 360f;
@@ -632,9 +635,9 @@ namespace TheFirstPerson
             Vector3 targetMove = Vector3.zero;
             if (moving)
             {
-                if (thirdPersonMode)
+                if (thirdPersonMode && (!walkBackwards && !strafe))
                 {
-                    if (walkBackwards && grounded)
+                    if (walkBackwards)
                     {
                         targetMove += Mathf.Sign(yIn) * forward * currentMoveSpeed * new Vector2(xIn, yIn).magnitude;
                         if (yIn < 0)
@@ -726,10 +729,11 @@ namespace TheFirstPerson
         {
             bool snap = Mathf.Abs(lastMove.x) + Mathf.Abs(lastMove.x) < Time.deltaTime * currentMoveSpeed * 0.5f;
             Vector3 inputDir = new Vector3(xIn, 0, yIn);
-            if (walkBackwards && yIn < 0 && grounded)
+            if (walkBackwards && yIn < 0)
             {
                 inputDir = new Vector3(-xIn, 0, -yIn);
             }
+            
             if (inputDir.magnitude > 0.01f)
             {
                 if (cameraAlignSpeed > 0 && !snap)
@@ -740,7 +744,15 @@ namespace TheFirstPerson
                 {
                     cameraAngle = cam.eulerAngles.y;
                 }
-                float targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg + cameraAngle;
+                float targetAngle = 0;
+                if (walkBackwards && strafe)
+                {
+                    targetAngle = Mathf.Atan2(0, inputDir.z) * Mathf.Rad2Deg + cameraAngle;
+                }
+                else
+                {
+                    targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg + cameraAngle;
+                }
                 if (turnSpeed != 0 && !snap)
                 {
                     float finalAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.y, targetAngle, turnSpeed * currentTurnMult * Time.deltaTime);

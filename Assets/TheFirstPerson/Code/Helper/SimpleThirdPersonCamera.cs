@@ -18,19 +18,11 @@ namespace TheFirstPerson.Helper
         public Transform camObject;
         public Vector3 pivotOffset = Vector3.zero;
         public Vector3 lookOffset = Vector3.zero;
-        public float camDistance = 10;
-        public float maxFollowSpeed = 20;
-        public float followSmoothing = 0;
         public float lookSensitivity = 1;
-        public float lookSmoothing = 0;
         public float verticalLookLimit;
         public bool mouseLookEnabled = true;
         public UpdateType positionUpdateType;
         public UpdateType lookUpdateType;
-
-
-        float curSpeed;
-        float curLookSpeed;
 
         void Start()
         {
