@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TheFirstPerson.Helper;
 
 namespace TheFirstPerson
 {
@@ -11,6 +12,7 @@ namespace TheFirstPerson
         PostUpdate,
         PreFixedUpdate,
         PostFixedUpdate,
+        PreMoveCalc,
         PreMove,
         PostMove,
         PostInput
@@ -24,13 +26,17 @@ namespace TheFirstPerson
 
 
         [Header("Options")]
+        public bool movementEnabled = true;
         public bool extensionsEnabled = false;
         public bool slopeSlideEnabled = true;
         public bool sprintEnabled = true;
         public bool momentumEnabled = true;
         public bool crouchEnabled = true;
         public bool jumpEnabled = true;
+        public bool thirdPersonMode = false; 
+        [ConditionalHide("thirdPersonMode", true, true)]
         public bool mouseLookEnabled = true;
+        [ConditionalHide("thirdPersonMode", true, true)]
         public bool verticalLookEnabled = true;
         public bool customCameraTransform = false;
         public bool customInputNames = false;
@@ -41,6 +47,8 @@ namespace TheFirstPerson
         [Tooltip("This will put a limit of 1 on the magnitude of the horizontal movement input.")]
         public bool normaliseMoveInput = false;
         public bool moveInFixedUpdate = false;
+        [ConditionalHide(new string[] { "customCameraTransform" , "thirdPersonMode"}, false, false, true)]
+        public Transform cam;
 
         [Header("Jump Settings")]
         [ConditionalHide("jumpEnabled", true)]
@@ -135,14 +143,12 @@ namespace TheFirstPerson
         [ConditionalHide("verticalLookEnabled", true)]
         [Tooltip("Maximum upward or downward angle of the mouselook camera.")]
         public float verticalLookLimit = 80;
-        [ConditionalHide("customCameraTransform", true)]
-        public Transform cam;
 
         [Header("CrouchSettings")]
         [ConditionalHide("crouchEnabled", true)]
         public bool crouchToggleStyle = false;
         [ConditionalHide("crouchEnabled", true)]
-        [Tooltip("Height of the crouch collider.")]
+        [Tooltip("Height of the crouch collider. Must be least twice the radius of the controller.")]
         public float crouchColliderHeight = 0.6f;
         [ConditionalHide("crouchEnabled", true)]
         [Tooltip("Horizontal speed when crouched relative to Move Speed.")]
@@ -153,7 +159,26 @@ namespace TheFirstPerson
         [ConditionalHide("crouchEnabled", true)]
         public LayerMask crouchHeadHitLayerMask;
 
-        [Header("Input Names")]
+        [Header("Third Person Options")]
+        [ConditionalHide("thirdPersonMode")]
+        [Tooltip("Is it possible to walk backwards or should the player turn")]
+        public bool walkBackwards = false;
+        [ConditionalHide(new string[] { "thirdPersonMode", "walkBackwards" }, true, false)]
+        [Tooltip("Is it possible to strafe or should the player turn")]
+        public bool strafe = false;
+        [ConditionalHide("thirdPersonMode")]
+        [Tooltip("Speed of character turning in degrees per second. Set to 0 for instant turning")]
+        public float turnSpeed = 360f;
+        [ConditionalHide(new string[]{ "thirdPersonMode", "sprintEnabled" },true,false)]
+        [Tooltip("Speed that you turn when sprinting relative to Turn Speed.")]
+        public float sprintTurnMult = 2.0f;
+        [ConditionalHide("thirdPersonMode")]
+        [Tooltip("Speed of character aligning to the canera direction in degrees per second. Set to 0 for instant turning")]
+        public float cameraAlignSpeed = 0;
+
+        [Header("Input Settings")]
+        [Tooltip("If left empty TFP will use its default input system, if you put a TFPInput object in it will use the input functions from that")]
+        public TFPInput customInputSystem;
         [ConditionalHide("customInputNames", true)]
         public string jumpBtnCustom = "Jump";
         [ConditionalHide("customInputNames", true)]
@@ -220,6 +245,10 @@ namespace TheFirstPerson
         float cameraOffset;
         RaycastHit headHit;
 
+        //third person
+        float currentTurnMult;
+        float cameraAngle;
+
         //Input Name Defaults (assuming default unity axes are set up)
         string jumpBtn = "Jump";
         string crouchBtn = "Fire1";
@@ -236,7 +265,7 @@ namespace TheFirstPerson
         {
             controller = GetComponent<CharacterController>();
             //get the transform of a child with a camera component
-            if (!customCameraTransform)
+            if (!customCameraTransform && !thirdPersonMode)
             {
                 cam = transform.GetComponentInChildren<Camera>().transform;
             }
@@ -256,8 +285,12 @@ namespace TheFirstPerson
                 xMouseName = xMouseNameCustom;
                 yMouseName = yMouseNameCustom;
             }
+            if (customInputSystem != null && customInputSystem.useFPSControllerAxisNames)
+            {
+                customInputSystem.SetAxisNames(jumpBtn, crouchBtn, runBtn, unlockMouseBtn, xInName, yInName, xMouseName, yMouseName);
+            }
 
-            if(sprintByDefault)
+            if (sprintByDefault)
             {
                 running = true;
             }
@@ -265,8 +298,12 @@ namespace TheFirstPerson
             if (definedByHeight)
             {
                 RecalculateJumpValues();
+                originalJT = maxJumpTime;
+                originalMaxJH = maxJumpHeight;
+                originalMinJH = minJumpHeight;
             }
 
+            cameraAngle = cam.eulerAngles.y;
             mouseLocked = startMouseLock;
 
             controllerInfo = GetInfo();
@@ -278,18 +315,32 @@ namespace TheFirstPerson
             if(definedByHeight && (originalJT != maxJumpTime || originalMaxJH != maxJumpHeight || originalMinJH != minJumpHeight))
             {
                 RecalculateJumpValues();
+                originalJT = maxJumpTime;
+                originalMaxJH = maxJumpHeight;
+                originalMinJH = minJumpHeight;
             }
 
 
             ExecuteExtension(ExtFunc.PreUpdate);
-            UpdateInput();
+            if (movementEnabled)
+            {
+                UpdateInput();
+            }
+
             UpdateMouseLock();
             ExecuteExtension(ExtFunc.PostInput);
-            if (mouseLocked)
+            if (thirdPersonMode && movementEnabled)
             {
-                MouseLook();
+                ThirdPersonSteering();
             }
-            if (!moveInFixedUpdate)
+            else
+            {
+                if (mouseLocked)
+                {
+                    MouseLook();
+                }
+            }
+            if (!moveInFixedUpdate && movementEnabled)
             {
                 UpdateMovement(Time.deltaTime);
             }
@@ -299,7 +350,7 @@ namespace TheFirstPerson
         void FixedUpdate()
         {
             ExecuteExtension(ExtFunc.PreFixedUpdate);
-            if (moveInFixedUpdate)
+            if (moveInFixedUpdate && movementEnabled)
             {
                 UpdateMovement(Time.deltaTime);
             }
@@ -308,196 +359,209 @@ namespace TheFirstPerson
 
         void UpdateMovement(float dt)
         {
-            forward = transform.forward;
-            side = transform.right;
-            currentMove = Vector3.zero;
-            grounded = controller.isGrounded;
-            slideMove = Vector3.zero;
-            Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1, 0, 1));
+            if (dt > 0)
+            {
+                forward = transform.forward;
+                side = transform.right;
+                currentMove = Vector3.zero;
+                grounded = controller.isGrounded;
+                slideMove = Vector3.zero;
+                Vector3 lastMoveH = Vector3.Scale(lastMove, new Vector3(1, 0, 1));
 
-            if (crouchEnabled && crouching)
-            {
-                if (controller.height > crouchColliderHeight)
+                if (crouchEnabled && crouching)
                 {
-                    controller.height = Mathf.MoveTowards(controller.height, crouchColliderHeight, dt * crouchTransitionSpeed);
-                }
-            }
-            else
-            {
-                if (controller.height < standingHeight)
-                {
-                    if (Physics.SphereCast(transform.position + (Vector3.up * 0.01f), controller.radius, Vector3.up, out headHit, standingHeight, crouchHeadHitLayerMask.value))
+                    if (controller.height > crouchColliderHeight)
                     {
-                        crouching = true;
-                    }
-                    else
-                    {
-                        controller.height = Mathf.MoveTowards(controller.height, standingHeight, dt * crouchTransitionSpeed);
+                        controller.height = Mathf.MoveTowards(controller.height, crouchColliderHeight, dt * crouchTransitionSpeed);
                     }
                 }
-            }
-
-            setCurrentMoveVars();
-            Vector3 targetMove = GetHorizontalMove();
-            controller.center = new Vector3(0, controller.height / 2.0f, 0);
-            cam.localPosition = new Vector3(cam.localPosition.x, controller.height - cameraOffset, cam.localPosition.z);
-
-            if (grounded && groundAngle >= controller.slopeLimit && slopeSlideEnabled)
-            {
-                if (Physics.Raycast(transform.position, Vector3.down, out ledgeCheck, 0.1f + (controller.radius * 2)))
+                else
                 {
-                    if (Vector3.Angle(ledgeCheck.normal, Vector3.up) >= controller.slopeLimit)
+                    if (controller.height < standingHeight)
                     {
-                        slide = true;
+                        if (Physics.SphereCast(transform.position + (Vector3.up * 0.01f), controller.radius, Vector3.up, out headHit, standingHeight, crouchHeadHitLayerMask.value))
+                        {
+                            crouching = true;
+                        }
+                        else
+                        {
+                            controller.height = Mathf.MoveTowards(controller.height, standingHeight, dt * crouchTransitionSpeed);
+                        }
+                    }
+                }
+
+                setCurrentMoveVars();
+                ExecuteExtension(ExtFunc.PreMoveCalc);
+                Vector3 targetMove = GetHorizontalMove();
+                controller.center = new Vector3(0, controller.height / 2.0f, 0);
+                if (mouseLookEnabled && !thirdPersonMode)
+                {
+                    cam.localPosition = new Vector3(cam.localPosition.x, controller.height - cameraOffset, cam.localPosition.z);
+                }
+
+                if (slide && !grounded && timeSinceGrounded < coyoteTime)
+                {
+                    timeSinceGrounded = coyoteTime;
+                    slide = true;
+                }
+
+                if (grounded && groundAngle >= controller.slopeLimit && slopeSlideEnabled)
+                {
+                    if (Physics.Raycast(transform.position, Vector3.down, out ledgeCheck, 0.1f + (controller.radius * 2)))
+                    {
+                        if (Vector3.Angle(ledgeCheck.normal, Vector3.up) >= controller.slopeLimit)
+                        {
+                            slide = true;
+                        }
+                        else
+                        {
+                            slide = false;
+                        }
+                    }
+                    else if (Physics.Raycast(transform.position + (controller.radius * Vector3.up), new Vector3(hitPoint.x, transform.position.y, hitPoint.z) - transform.position, out ledgeCheck, 0.1f + (controller.radius * 2)))
+                    {
+                        if (Vector3.Angle(ledgeCheck.normal, Vector3.up) >= controller.slopeLimit)
+                        {
+                            slide = true;
+                        }
+                        else
+                        {
+                            slide = false;
+                        }
                     }
                     else
                     {
                         slide = false;
-                    }
-                }
-                else if (Physics.Raycast(transform.position + (controller.radius * Vector3.up), new Vector3(hitPoint.x, transform.position.y, hitPoint.z) - transform.position, out ledgeCheck, 0.1f + (controller.radius * 2)))
-                {
-                    if (Vector3.Angle(ledgeCheck.normal, Vector3.up) >= controller.slopeLimit)
-                    {
-                        slide = true;
-                    }
-                    else
-                    {
-                        slide = false;
+                        groundAngle = 0;
                     }
                 }
                 else
                 {
                     slide = false;
-                    groundAngle = 0;
                 }
-            }
-            else
-            {
-                slide = false;
-            }
 
-            if (slide)
-            {
-                slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
-                Vector3.OrthoNormalize(ref hitNormal, ref slideMove);
-                Vector3 slideMoveh = Vector3.Scale(slideMove, new Vector3(1, 0, 1)).normalized * slopeSlideSpeed;
-                if (Vector3.Angle(targetMove, slideMoveh) > 100)
+                if (slide)
                 {
-                    targetMove = slideMoveh;
-                }
-                else
-                {
-                    targetMove += slideMoveh;
-                }
-                if (jumpEnabled && jumpWhileSliding)
-                {
-                    if (jumpPressed > 0)
+                    slideMove = new Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+                    Vector3.OrthoNormalize(ref hitNormal, ref slideMove);
+                    Vector3 slideMoveh = Vector3.Scale(slideMove, new Vector3(1, 0, 1)).normalized * (slopeSlideSpeed * (1 - groundAngle / 90));
+                    if (Vector3.Angle(targetMove, slideMoveh) > 100)
                     {
-                        targetMove = slideMoveh.normalized * slopeJumpKickbackSpeed;
-                        instantMomentumChange = true;
-                    }
-                }
-            }
-
-            if (grounded)
-            {
-                if (momentumEnabled && !instantMomentumChange)
-                {
-                    if (moving || targetMove.magnitude < lastMoveH.magnitude)
-                    {
-                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, dt * deceleration);
+                        targetMove = slideMoveh;
                     }
                     else
                     {
-                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, dt * acceleration);
+                        targetMove += slideMoveh;
                     }
-                }
-                else
-                {
-                    currentMove = targetMove;
-                }
-                var targetYVel = -baseGroundForce + (-maxGroundForce * (groundAngle / 90.0f));
-                if (lastMove.y < 0)
-                {
-                    yVel = Mathf.Lerp(lastMove.y, targetYVel, gravity * dt);
-                }
-                else
-                {
-                    yVel = targetYVel;
-                }
-                timeSinceGrounded = 0;
-                jumping = false;
-                if (jumpEnabled && (jumpWhileSliding || !slide))
-                {
-                    if (jumpPressed > 0)
+                    if (jumpEnabled && jumpWhileSliding)
                     {
-                        Jump();
+                        if (jumpPressed > 0)
+                        {
+                            targetMove = slideMoveh.normalized * slopeJumpKickbackSpeed;
+                            instantMomentumChange = true;
+                        }
                     }
                 }
-                else if (slide)
+
+                if (grounded)
                 {
+                    if (momentumEnabled && !instantMomentumChange)
+                    {
+                        if (moving || targetMove.magnitude < lastMoveH.magnitude)
+                        {
+                            currentMove = Vector3.MoveTowards(lastMoveH, targetMove, dt * deceleration);
+                        }
+                        else
+                        {
+                            currentMove = Vector3.MoveTowards(lastMoveH, targetMove, dt * acceleration);
+                        }
+                    }
+                    else
+                    {
+                        currentMove = targetMove;
+                    }
+                    var targetYVel = -baseGroundForce + (-maxGroundForce * (groundAngle / 90.0f));
+                    if (lastMove.y < 0)
+                    {
+                        yVel = Mathf.Lerp(lastMove.y, targetYVel, gravity * dt);
+                    }
+                    else
+                    {
+                        yVel = targetYVel;
+                    }
+                    timeSinceGrounded = 0;
+                    jumping = false;
+                    if (jumpEnabled && (jumpWhileSliding || !slide))
+                    {
+                        if (jumpPressed > 0)
+                        {
+                            Jump();
+                        }
+                    }
+                    else if (slide)
+                    {
+                        if (jumpPressed > 0)
+                        {
+                            jumpPressed -= dt;
+                        }
+                    }
+                }
+                else
+                {
+                    if ((controller.collisionFlags & CollisionFlags.Above) != 0 && yVel > 0)
+                    {
+                        yVel = 0;
+                    }
+                    if (moving)
+                    {
+                        currentMove = Vector3.Lerp(lastMoveH, targetMove, airControl);
+                    }
+                    else
+                    {
+                        currentMove = Vector3.MoveTowards(lastMoveH, targetMove, airResistance * dt);
+                    }
+                    if (timeSinceGrounded <= 0 && !jumping)
+                    {
+                        if (lastMove.y < -baseFallVelocity)
+                        {
+                            yVel = Mathf.Min(lastMove.y, gravityCap);
+                        }
+                        else if (yVel <= 0)
+                        {
+                            yVel = -baseFallVelocity;
+                        }
+                    }
+                    if (jumpEnabled && timeSinceGrounded < coyoteTime && (jumpWhileSliding || !slide))
+                    {
+                        if (jumpPressed > 0 && !jumping)
+                        {
+                            Jump();
+                        }
+                    }
+
+                    yVel -= gravity * gravMult * dt;
+                    if (yVel < -gravityCap)
+                    {
+                        yVel = -gravityCap;
+                    }
+
+                    timeSinceGrounded += dt;
                     if (jumpPressed > 0)
                     {
                         jumpPressed -= dt;
                     }
                 }
+
+                ExecuteExtension(ExtFunc.PreMove);
+
+                currentMove += Vector3.up * yVel;
+                moveDelta = transform.position;
+                controller.Move(currentMove * dt);
+                moveDelta = transform.position - moveDelta;
+                lastMove = moveDelta * 1 / dt;
+                instantMomentumChange = false;
+                ExecuteExtension(ExtFunc.PostMove);
             }
-            else
-            {
-                if ((controller.collisionFlags & CollisionFlags.Above) != 0 && yVel > 0)
-                {
-                    yVel = 0;
-                }
-                if (moving)
-                {
-                    currentMove = Vector3.Lerp(lastMoveH, targetMove, airControl);
-                }
-                else
-                {
-                    currentMove = Vector3.MoveTowards(lastMoveH, targetMove, airResistance * dt);
-                }
-                if (timeSinceGrounded <= 0 && !jumping)
-                {
-                    if (lastMove.y < -baseFallVelocity)
-                    {
-                        yVel = lastMove.y;
-                    }
-                    else if (yVel <= 0)
-                    {
-                        yVel = -baseFallVelocity;
-                    }
-                }
-                if (jumpEnabled && timeSinceGrounded < coyoteTime && (jumpWhileSliding || !slide))
-                {
-                    if (jumpPressed > 0 && !jumping)
-                    {
-                        Jump();
-                    }
-                }
-
-                yVel -= gravity * gravMult * dt;
-                if (yVel < -gravityCap)
-                {
-                    yVel = -gravityCap;
-                }
-
-                timeSinceGrounded += dt;
-                if (jumpPressed > 0)
-                {
-                    jumpPressed -= dt;
-                }
-            }
-
-            ExecuteExtension(ExtFunc.PreMove);
-
-            currentMove += Vector3.up * yVel;
-            moveDelta = transform.transform.position;
-            controller.Move(currentMove * dt);
-            moveDelta = transform.position - moveDelta;
-            lastMove = moveDelta * 1 / dt;
-            instantMomentumChange = false;
-            ExecuteExtension(ExtFunc.PostMove);
         }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -509,6 +573,7 @@ namespace TheFirstPerson
 
         void setCurrentMoveVars()
         {
+            currentTurnMult = 1.0f;
             if (grounded)
             {
                 currentMoveSpeed = moveSpeed;
@@ -520,6 +585,10 @@ namespace TheFirstPerson
                 }
                 else if (running && sprintEnabled)
                 {
+                    if (thirdPersonMode)
+                    {
+                        currentTurnMult *= sprintTurnMult;
+                    }
                     currentMoveSpeed *= sprintMult;
                 }
             }
@@ -530,6 +599,10 @@ namespace TheFirstPerson
                 currentBackwardMult = airBackwardMult;
                 if (running && airSprintEnabled && !(crouching && crouchEnabled))
                 {
+                    if (thirdPersonMode)
+                    {
+                        currentTurnMult *= sprintTurnMult;
+                    }
                     currentMoveSpeed *= airSprintMult;
                 }
 
@@ -550,14 +623,7 @@ namespace TheFirstPerson
                         gravMult = postJumpGravityMult;
                     }
                 }
-                else if (yVel > 0)
-                {
-                    if (variableHeight)
-                    {
-                        gravMult = postJumpGravityMult;
-                    }
-                }
-                else
+                else if (yVel <= 0)
                 {
                     gravMult = 1.0f;
                 }
@@ -569,12 +635,30 @@ namespace TheFirstPerson
             Vector3 targetMove = Vector3.zero;
             if (moving)
             {
-                targetMove += forward * currentMoveSpeed * yIn;
-                if (yIn < 0)
+                if (thirdPersonMode && (!walkBackwards && !strafe))
                 {
-                    targetMove *= currentBackwardMult;
+                    if (walkBackwards)
+                    {
+                        targetMove += Mathf.Sign(yIn) * forward * currentMoveSpeed * new Vector2(xIn, yIn).magnitude;
+                        if (yIn < 0)
+                        {
+                            targetMove *= currentBackwardMult;
+                        }
+                    }
+                    else
+                    {
+                        targetMove += forward * currentMoveSpeed * new Vector2(xIn, yIn).magnitude;
+                    }
                 }
-                targetMove += side * currentMoveSpeed * xIn * currentStrafeMult;
+                else
+                {
+                    targetMove += forward * currentMoveSpeed * yIn;
+                    if (yIn < 0)
+                    {
+                        targetMove *= currentBackwardMult;
+                    }
+                    targetMove += side * currentMoveSpeed * xIn * currentStrafeMult;
+                }
             }
             return targetMove;
         }
@@ -582,15 +666,15 @@ namespace TheFirstPerson
         void Jump()
         {
             jumping = true;
-            yVel = jumpSpeed;
+            yVel = Mathf.Max(yVel, jumpSpeed);
             jumpPressed = 0;
         }
 
         void UpdateMouseLock()
         {
-            if (mouseLockToggleEnabled)
+            if (mouseLockToggleEnabled && Time.timeScale > 0)
             {
-                if (Input.GetButtonDown(unlockMouseBtn))
+                if (customInputSystem == null ? Input.GetButtonDown(unlockMouseBtn) : customInputSystem.UnlockMouseButton())
                 {
                     mouseLocked = false;
                 }
@@ -641,47 +725,90 @@ namespace TheFirstPerson
             }
         }
 
+        void ThirdPersonSteering()
+        {
+            bool snap = Mathf.Abs(lastMove.x) + Mathf.Abs(lastMove.x) < Time.deltaTime * currentMoveSpeed * 0.5f;
+            Vector3 inputDir = new Vector3(xIn, 0, yIn);
+            if (walkBackwards && yIn < 0)
+            {
+                inputDir = new Vector3(-xIn, 0, -yIn);
+            }
+            
+            if (inputDir.magnitude > 0.01f)
+            {
+                if (cameraAlignSpeed > 0 && !snap)
+                {
+                    cameraAngle = Mathf.MoveTowardsAngle(cameraAngle, cam.eulerAngles.y, Time.deltaTime * cameraAlignSpeed);
+                }
+                else
+                {
+                    cameraAngle = cam.eulerAngles.y;
+                }
+                float targetAngle = 0;
+                if (walkBackwards && strafe)
+                {
+                    targetAngle = Mathf.Atan2(0, inputDir.z) * Mathf.Rad2Deg + cameraAngle;
+                }
+                else
+                {
+                    targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg + cameraAngle;
+                }
+                if (turnSpeed != 0 && !snap)
+                {
+                    float finalAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.y, targetAngle, turnSpeed * currentTurnMult * Time.deltaTime);
+                    transform.eulerAngles = new Vector3(0, finalAngle, 0);
+                }
+                else
+                {
+                    transform.eulerAngles = new Vector3(0, targetAngle, 0);
+                }
+            }
+        }
+
         void UpdateInput()
         {
-            xIn = Input.GetAxisRaw(xInName);
-            yIn = Input.GetAxisRaw(yInName);
+            bool standard = customInputSystem == null;
+            xIn = standard ? Input.GetAxisRaw(xInName) : customInputSystem.XAxis();
+            yIn = standard ? Input.GetAxisRaw(yInName) : customInputSystem.YAxis();
             if (normaliseMoveInput)
             {
                 Vector2 normalised = Vector2.ClampMagnitude(new Vector2(xIn, yIn), 1.0f);
                 xIn = normalised.x;
                 yIn = normalised.y;
             }
-            xMouse = Input.GetAxis(xMouseName);
-            yMouse = Input.GetAxis(yMouseName);
+            xMouse = standard ? Input.GetAxis(xMouseName) : customInputSystem.XMouse();
+            yMouse = standard ? Input.GetAxis(yMouseName) : customInputSystem.YMouse();
             moving = Mathf.Abs(xIn) > 0.1 || Mathf.Abs(yIn) > 0.1;
             if (crouchToggleStyle)
             {
-                if (Input.GetButtonDown(crouchBtn))
+                if (standard ? Input.GetButtonDown(crouchBtn) : customInputSystem.CrouchPressed())
                 {
                     crouching = !crouching;
                 }
             }
             else
             {
-                crouching = Input.GetButton(crouchBtn);
+                crouching = standard ? Input.GetButton(crouchBtn) : customInputSystem.CrouchHeld();
             }
+            bool runPressed = standard ? Input.GetButtonDown(runBtn) || Input.GetAxisRaw(runBtn) > 0.1f : customInputSystem.RunPressed();
+            bool runHeld = standard ? Input.GetButton(runBtn) || Input.GetAxisRaw(runBtn) > 0.1f : customInputSystem.RunHeld();
             if (sprintToggleStyle)
             {
-                if (Input.GetButtonDown(runBtn))
+                if (runPressed)
                 {
                     running = !running;
                 }
             }
             else if (sprintByDefault)
             {
-                running = !Input.GetButton(runBtn);
+                running = !runHeld;
             }
             else
             {
-                running = Input.GetButton(runBtn);
+                running = runHeld;
             }
-            jumpHeld = Input.GetButton(jumpBtn);
-            if (Input.GetButtonDown(jumpBtn))
+            	jumpHeld = standard ? Input.GetButton(jumpBtn) : customInputSystem.JumpHeld();
+if (standard ? Input.GetButtonDown(jumpBtn) : customInputSystem.JumpPressed())
             {
                 jumpPressed = coyoteTime;
                 if (moveInFixedUpdate)
@@ -699,10 +826,23 @@ namespace TheFirstPerson
             postJumpGravityMult = ((2 * minJumpHeight) / Mathf.Pow(minJumpTime, 2)) / gravity;
         }
 
+        private void OnDrawGizmosSelected()
+        {
+            if (controller == null)
+            {
+                controller = gameObject.GetComponent<CharacterController>();
+            }
+            Vector3 pos = transform.position + controller.center;
+            GizmoUtilities.DrawWireCapsule(pos, Quaternion.identity, controller.radius + controller.skinWidth, controller.height + (2*controller.skinWidth), Color.cyan);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position + new Vector3(-controller.radius, controller.stepOffset,0), transform.position + new Vector3(controller.radius, controller.stepOffset, 0));
+            Gizmos.DrawLine(transform.position + new Vector3(0, controller.stepOffset, -controller.radius), transform.position + new Vector3(0, controller.stepOffset, controller.radius));
+        }
+
         TFPData GetData()
         {
-            return new TFPData(moving, jumpHeld, crouching, running, mouseLocked, mouseLookEnabled, jumpPressed, xIn, yIn, xMouse, yMouse,
-                jumping, grounded, timeSinceGrounded, yVel, slide,
+            return new TFPData(movementEnabled, moving, jumpHeld, crouching, running, mouseLocked, mouseLookEnabled,
+                jumpPressed, xIn, yIn, xMouse, yMouse, jumping, grounded, timeSinceGrounded, yVel, slide,
                 gravMult, currentStrafeMult, currentBackwardMult, currentMoveSpeed, groundAngle,
                 lastMove, currentMove, forward, side, moveDelta, hitNormal, hitPoint, slideMove,
                 standingHeight, cameraOffset);
@@ -726,6 +866,7 @@ namespace TheFirstPerson
 
         void SetData(TFPData newData)
         {
+            movementEnabled = newData.movementEnabled;
             moving = newData.moving;
             jumpHeld = newData.jumpHeld;
             crouching = newData.crouching;
@@ -787,6 +928,9 @@ namespace TheFirstPerson
                         break;
                     case ExtFunc.PreMove:
                         extension.ExPreMove(ref data, controllerInfo);
+                        break;
+                    case ExtFunc.PreMoveCalc:
+                        extension.ExPreMoveCalc(ref data, controllerInfo);
                         break;
                     case ExtFunc.PostMove:
                         extension.ExPostMove(ref data, controllerInfo);

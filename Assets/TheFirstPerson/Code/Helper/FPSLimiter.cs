@@ -2,17 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FPSLimiter : MonoBehaviour
+namespace TheFirstPerson.Helper
 {
-    [Header("For development testing purposes only")]
-    public bool limitFPS = false;
-    public int targetFPS = 60;
-
-    void Start()
+    public class FPSLimiter : MonoBehaviour
     {
-        if (limitFPS)
+        [Header("For development testing purposes only")]
+        public bool limitFPS = false;
+        public int targetFPS = 60;
+
+        void Start()
         {
-            Application.targetFrameRate = targetFPS;
+            if (limitFPS)
+            {
+                Application.targetFrameRate = targetFPS;
+            }
         }
     }
 }
