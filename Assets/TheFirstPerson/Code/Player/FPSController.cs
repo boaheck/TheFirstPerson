@@ -807,8 +807,8 @@ namespace TheFirstPerson
             {
                 running = runHeld;
             }
-            	jumpHeld = standard ? Input.GetButton(jumpBtn) : customInputSystem.JumpHeld();
-if (standard ? Input.GetButtonDown(jumpBtn) : customInputSystem.JumpPressed())
+            jumpHeld = standard ? Input.GetButton(jumpBtn) : customInputSystem.JumpHeld();
+            if (standard ? Input.GetButtonDown(jumpBtn) : customInputSystem.JumpPressed())
             {
                 jumpPressed = coyoteTime;
                 if (moveInFixedUpdate)
