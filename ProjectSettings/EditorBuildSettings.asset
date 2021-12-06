@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/TFPSampleScene/TFPSampleScene.unity
+    guid: 0f2dadc2573f7dd43adb81704dd29382
   m_configObjects: {}

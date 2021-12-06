@@ -826,6 +826,7 @@ if (standard ? Input.GetButtonDown(jumpBtn) : customInputSystem.JumpPressed())
             postJumpGravityMult = ((2 * minJumpHeight) / Mathf.Pow(minJumpTime, 2)) / gravity;
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
             if (controller == null)
@@ -838,6 +839,7 @@ if (standard ? Input.GetButtonDown(jumpBtn) : customInputSystem.JumpPressed())
             Gizmos.DrawLine(transform.position + new Vector3(-controller.radius, controller.stepOffset,0), transform.position + new Vector3(controller.radius, controller.stepOffset, 0));
             Gizmos.DrawLine(transform.position + new Vector3(0, controller.stepOffset, -controller.radius), transform.position + new Vector3(0, controller.stepOffset, controller.radius));
         }
+#endif
 
         TFPData GetData()
         {
